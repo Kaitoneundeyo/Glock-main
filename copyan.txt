@@ -1,0 +1,249 @@
+    public function resetForm()
+    {
+        $this->reset([
+            'produk_id',
+            'gambar_utama',
+            'gambar1',
+            'gambar2',
+            'gambarUtamaLama',
+            'gambar1Lama',
+            'gambar2Lama',
+            'editId',
+            'editImageType',
+            'isEdit'
+        ]);
+    }
+
+    public function store()
+    {
+        $this->validate([
+            'produk_id' => 'required|exists:produks,id',
+            'gambar_utama' => 'required|image|max:2048',
+            'gambar1' => 'nullable|image|max:2048',
+            'gambar2' => 'nullable|image|max:2048',
+        ]);
+
+        // Upload dan simpan gambar utama
+        if ($this->gambar_utama) {
+            $path = $this->gambar_utama->store('foto_produk', 'public');
+            GambarProduk::create([
+                'produk_id' => $this->produk_id,
+                'path' => $path,
+                'is_utama' => true,
+            ]);
+        }
+
+        // Upload dan simpan gambar tambahan 1
+        if ($this->gambar1) {
+            $path1 = $this->gambar1->store('foto_produk', 'public');
+            GambarProduk::create([
+                'produk_id' => $this->produk_id,
+                'path' => $path1,
+                'is_utama' => false,
+            ]);
+        }
+
+        // Upload dan simpan gambar tambahan 2
+        if ($this->gambar2) {
+            $path2 = $this->gambar2->store('foto_produk', 'public');
+            GambarProduk::create([
+                'produk_id' => $this->produk_id,
+                'path' => $path2,
+                'is_utama' => false,
+            ]);
+        }
+
+        session()->flash('message', 'Foto produk berhasil diunggah.');
+        $this->resetForm();
+    }
+
+    public function edit($id)
+    {
+        $gambar = GambarProduk::findOrFail($id);
+
+        $this->editId = $id;
+        $this->produk_id = $gambar->produk_id;
+        $this->editImageType = 'gambar_utama'; // Default, bisa diganti dari UI
+        $this->isEdit = true;
+
+        // Set gambar lama berdasarkan tipe utama atau tidak
+        if ($gambar->is_utama) {
+            $this->gambarUtamaLama = $gambar->path;
+        } else {
+            // Coba cocokan apakah path milik gambar1 atau gambar2
+            $this->gambar1Lama = $gambar->path;
+        }
+    }
+
+    public function update()
+    {
+        $gambar = GambarProduk::findOrFail($this->editId);
+
+        $this->validate([
+            $this->editImageType => 'required|image|max:2048',
+        ]);
+
+        // Hapus gambar lama dari storage
+        if ($gambar->path && Storage::disk('public')->exists($gambar->path)) {
+            Storage::disk('public')->delete($gambar->path);
+        }
+
+        // Simpan gambar baru
+        $uploaded = $this->{$this->editImageType}->store('foto_produk', 'public');
+
+        $gambar->update([
+            'path' => $uploaded,
+        ]);
+
+        session()->flash('message', 'Foto produk berhasil diperbarui.');
+        $this->resetForm();
+    }
+
+    public function cancelEdit()
+    {
+        $this->resetForm();
+    }
+
+    public function delete($id)
+    {
+        $gambar = GambarProduk::findOrFail($id);
+
+        if (Storage::disk('public')->exists($gambar->path)) {
+            Storage::disk('public')->delete($gambar->path);
+        }
+
+        $gambar->delete();
+        session()->flash('message', 'Foto berhasil dihapus.');
+    }
+
+
+      {{-- <div class="card-body">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-sm-10">
+                <div class="mb-4 p-2 bg-transparent rounded">
+                    <h2 class="text-2xl font-semibold text-gray-800">Upload Foto Produk</h2>
+                </div>
+
+                <form wire:submit.prevent="{{ $isEdit ? 'update' : 'store' }}" enctype="multipart/form-data">
+                    <div class="mb-4 p-4 border rounded-lg bg-white shadow-sm">
+                        <label for="produk_id" class="block font-semibold mb-2 text-gray-700">Pilih Produk</label>
+                        <select wire:model="produk_id" id="produk_id"
+                            class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-400" @if($isEdit)
+                            disabled @endif>
+                            <option value="">-- Pilih Produk --</option>
+                            @foreach ($produk as $pro)
+                            <option value="{{ $pro->id }}">{{ $pro->nama_produk }}</option>
+                            @endforeach
+                        </select>
+                        @error('produk_id') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
+                    </div>
+
+                    @foreach ([
+                    ['label' => 'Gambar Utama', 'model' => 'gambar_utama', 'lama' => $gambarUtamaLama ?? null],
+                    ['label' => 'Gambar Tambahan 1', 'model' => 'gambar1', 'lama' => $gambar1Lama ?? null],
+                    ['label' => 'Gambar Tambahan 2', 'model' => 'gambar2', 'lama' => $gambar2Lama ?? null]
+                    ] as $gambar)
+                    @php
+                    $field = $gambar['model'];
+                    $label = $gambar['label'];
+                    $lama = $gambar['lama'];
+                    @endphp
+                    <div class="mb-4 p-4 border rounded-lg bg-white shadow-sm">
+                        <label class="block font-semibold mb-2 text-gray-700">{{ $label }}</label>
+                        <input type="file" wire:model="{{ $field }}" accept="image/*"
+                            class="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-400" @if($isEdit &&
+                            $editImageType !==$field) disabled @endif>
+
+                        @if ($$field)
+                        <img src="{{ $$field->temporaryUrl() }}" class="w-24 h-24 object-cover mt-3 rounded shadow"
+                            alt="Preview {{ $label }}">
+                        @elseif ($isEdit && $lama)
+                        <img src="{{ asset('storage/' . $lama) }}" class="w-24 h-24 object-cover mt-3 rounded shadow"
+                            alt="Gambar Lama">
+                        @endif
+
+                        @error($field) <span class="text-sm text-red-500">{{ $message }}</span> @enderror
+
+                        <div wire:loading wire:target="{{ $field }}" class="text-sm text-blue-500 mt-1">
+                            Mengunggah {{ strtolower($label) }}...
+                        </div>
+                    </div>
+                    @endforeach
+
+                    <div class="flex items-center gap-4">
+                        <button type="submit"
+                            class="bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2 disabled:opacity-50"
+                            wire:loading.attr="disabled" wire:target="gambar_utama,gambar1,gambar2,store,update">
+
+                            <svg wire:loading wire:target="gambar_utama,gambar1,gambar2,store,update"
+                                class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4" />
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4l3.5-3.5a9 9 0 11-12.7 0L8 8V4a8 8 0 00-4 8z" />
+                            </svg>
+
+                            <span wire:loading.remove wire:target="gambar_utama,gambar1,gambar2,store,update">
+                                {{ $isEdit ? 'Update' : 'Upload' }}
+                            </span>
+                            <span wire:loading wire:target="gambar_utama,gambar1,gambar2,store,update">
+                                {{ $isEdit ? 'Updating...' : 'Uploading...' }}
+                            </span>
+                        </button>
+
+                        @if($isEdit)
+                        <button type="button" wire:click="cancelEdit"
+                            class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                            Batal
+                        </button>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive mt-6">
+            <table class="table-auto w-full border border-gray-300 mb-3">
+                <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                        <th class="border px-4 py-2">No</th>
+                        <th class="border px-4 py-2">Produk</th>
+                        <th class="border px-4 py-2">Gambar</th>
+                        <th class="border px-4 py-2">Utama?</th>
+                        <th class="border px-4 py-2">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($gambarList as $index => $gambar)
+                    <tr class="text-center">
+                        <td class="border px-4 py-2">{{ $index + 1 }}</td>
+                        <td class="border px-4 py-2">{{ $gambar->produk->nama_produk ?? '-' }}</td>
+                        <td class="border px-4 py-2">
+                            <img src="{{ asset('storage/' . $gambar->path) }}" class="w-16 h-16 object-cover rounded"
+                                alt="Gambar Produk">
+                        </td>
+                        <td class="border px-4 py-2">
+                            @if ($gambar->is_utama)
+                            <span class="text-green-600 font-semibold">✔</span>
+                            @else
+                            <span class="text-gray-400">✘</span>
+                            @endif
+                        </td>
+                        <td class="border px-4 py-2 space-x-2">
+                            <button wire:click="edit({{ $gambar->id }})"
+                                class="text-yellow-600 hover:underline">Edit</button>
+                            <button wire:click="delete({{ $gambar->id }})"
+                                class="text-red-500 hover:underline">Hapus</button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="border px-4 py-3 text-center text-gray-500">Belum ada gambar</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> --}}
