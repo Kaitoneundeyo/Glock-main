@@ -17,7 +17,8 @@ use App\Http\Controllers\UtamaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'index'])->name('login');
-Route::post('/login-proses', [AuthController::class, 'login_proses'])->name('login-proses');
+Route::get('/login-google', [AuthController::class, 'indexGoogle'])->name('login-google');
+Route::post('/login-proses',  [AuthController::class, 'login_proses'])->name('login-proses');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/home', [HomeController::class, 'index'])->name('home.index');

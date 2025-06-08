@@ -23,7 +23,7 @@
             </li>
             <li class="{{ request()->routeIs('gambar.index') ? 'active' : '' }}">
                 <a href="{{ route('coba.index') }}" class="nav-link">
-                    <i class="fas fa-image"></i><span>KERANJANG</span>
+                    <i class="fas fa-shopping-basket"></i><span>KERANJANG</span>
                 </a>
             </li>
             <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">

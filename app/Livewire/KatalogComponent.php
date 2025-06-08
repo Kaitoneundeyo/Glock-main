@@ -34,7 +34,6 @@ class KatalogComponent extends Component
     public function showAddToCartModal($produk_id)
     {
         $this->selectedProduk = Produk::with('hargaTerbaru')->find($produk_id);
-
         if (!$this->selectedProduk) {
             session()->flash('error', 'Produk tidak ditemukan.');
             return;
@@ -46,6 +45,7 @@ class KatalogComponent extends Component
 
     /**
      * Tambahkan produk ke keranjang setelah konfirmasi dari modal
+     * Lalu arahkan ke halaman checkout
      */
     public function confirmAddToCart()
     {
@@ -63,7 +63,7 @@ class KatalogComponent extends Component
 
         $produk = $this->selectedProduk;
 
-        // Hitung stok tersedia (stok asli - semua item di semua keranjang)
+        // Hitung stok tersedia
         $totalCartQty = Cart_item::where('produk_id', $produk->id)->sum('quantity');
         $stokTersedia = $produk->stok - $totalCartQty;
 
@@ -72,7 +72,7 @@ class KatalogComponent extends Component
             return;
         }
 
-        // Tambahkan atau update item di keranjang
+        // Tambah atau update item keranjang
         $item = Cart_item::where('user_id', $user->id)
             ->where('produk_id', $produk->id)
             ->first();
@@ -88,8 +88,10 @@ class KatalogComponent extends Component
             ]);
         }
 
-        $this->showModal = false;
-        session()->flash('success', 'Produk berhasil ditambahkan ke keranjang.');
+        $this->reset(['showModal', 'selectedProduk', 'quantity']);
+
+        // ✅ Redirect ke route 'coba.index'
+        return redirect()->route('coba.index');
     }
 
     public function render()

@@ -15,6 +15,11 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
+    public function indexGoogle()
+    {
+        return view('auth.login-google');
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -46,5 +51,4 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/login')->with('success', 'Berhasil logout!');
     }
-
 }
