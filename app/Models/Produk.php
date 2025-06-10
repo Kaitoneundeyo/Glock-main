@@ -55,4 +55,10 @@ class Produk extends Model
     {
         return $this->hasMany(GambarProduk::class, 'produk_id');
     }
+
+    // 🔁 Item Penjualan
+    public function saleItems()
+    {
+        return $this->hasMany(SaleItem::class, 'produk_id');
+    }
 }

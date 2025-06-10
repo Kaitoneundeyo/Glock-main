@@ -5,8 +5,10 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\CobaController;
 use App\Http\Controllers\GambarProdukController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\KonfirmasiController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\HargaController;
+use App\Http\Controllers\HistoriController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\StokmasukController;
@@ -53,4 +55,6 @@ Route::get('/it/{id}', function ($id) {
 Route::get('/gb', [GambarProdukController::class, 'index'])->name('gambar.index');
 Route::get('/hg', [HargaController::class, 'index'])->name('harga.index');
 Route::get('/cb', [CobaController::class, 'index'])->name('coba.index');
-Route::get('/tr', [TransaksiController::class, 'index'])->name('transaksi.index');
+Route::get('/by', [KonfirmasiController::class, 'index'])->name('konfir.index');
+Route::get('/bk', [HistoriController::class, 'index'])->name('bukti.index');
+

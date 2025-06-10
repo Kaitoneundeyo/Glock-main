@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->string('no_transaksi');
-            $table->dateTime('tanggal');
-            $table->foreignId('user_id')->constrained(); // kasir/admin yang menjual
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('invoice_number')->unique();
+            $table->decimal('total', 10, 2);
+            $table->enum('status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->string('payment_type')->nullable();
+            $table->text('midtrans_response')->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales');
+        Schema::dropIfExists('sale');
     }
 };

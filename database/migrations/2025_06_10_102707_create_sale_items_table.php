@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('promotional_prices', function (Blueprint $table) {
+        Schema::create('sale_items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
             $table->foreignId('produk_id')->constrained('produk')->onDelete('cascade');
-            $table->decimal('harga_promosi', 15, 2);
-            $table->date('mulai_promo');
-            $table->date('akhir_promo');
-            $table->foreignId('created_by')->constrained('users'); // super admin / marketing
+            $table->integer('quantity');
+            $table->decimal('price', 10, 2); // harga per item saat checkout
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('promotional_prices');
+        Schema::dropIfExists('sale_items');
     }
 };
