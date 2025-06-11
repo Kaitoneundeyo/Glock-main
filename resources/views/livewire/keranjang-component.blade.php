@@ -21,8 +21,8 @@
                         <div class="font-semibold">{{ $item->produk->nama_produk }}</div>
                         <div class="mt-2">
                             @php
-                                $promo = $item->produk->hargaTerbaru->harga_promo ?? 0;
-                                $jual = $item->produk->hargaTerbaru->harga_jual ?? 0;
+    $promo = $item->produk->hargaTerbaru->harga_promo ?? 0;
+    $jual = $item->produk->hargaTerbaru->harga_jual ?? 0;
                             @endphp
 
                             @if($promo > 0 && $promo < $jual)
@@ -49,8 +49,8 @@
                 {{-- Subtotal & Hapus --}}
                 <div class="text-right w-1/3">
                     @php
-                        $harga = $promo > 0 && $promo < $jual ? $promo : $jual;
-                        $subtotal = $harga * $item->quantity;
+    $harga = $promo > 0 && $promo < $jual ? $promo : $jual;
+    $subtotal = $harga * $item->quantity;
                     @endphp
 
                     <div class="font-semibold">
@@ -71,9 +71,12 @@
 
         {{-- Tombol --}}
         <div class="mt-6 text-right">
-            <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded shadow">
-                Checkout
-            </button>
+            <form action="{{ route('checkout.process') }}" method="POST">
+                @csrf
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded shadow">
+                    Checkout
+                </button>
+            </form>
         </div>
     </div>
 </div>

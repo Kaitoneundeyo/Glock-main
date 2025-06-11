@@ -26,8 +26,8 @@
                     <i class="fas fa-shopping-basket"></i><span>KERANJANG</span>
                 </a>
             </li>
-            <li class="{{ request()->routeIs('konfir.index') ? 'active' : '' }}">
-                <a href="{{ route('konfir.index') }}" class="nav-link">
+            <li class="{{ request()->routeIs('checkout.transactions') ? 'active' : '' }}">
+                <a href="{{ route('checkout.transactions') }}" class="nav-link">
                     <i class="fas fa-money-bill-wave"></i><span>TRANSAKSI</span>
                 </a>
             </li>

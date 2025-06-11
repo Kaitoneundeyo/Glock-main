@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('invoice_number')->unique();
+            $table->dateTime('tanggal_transaksi');
             $table->decimal('total', 10, 2);
             $table->enum('status', ['pending', 'paid', 'failed'])->default('pending');
             $table->string('payment_type')->nullable();

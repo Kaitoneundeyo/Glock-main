@@ -9,10 +9,11 @@ class Sale extends Model
     protected $fillable = [
         'user_id',
         'invoice_number',
+        'tanggal_transaksi',
         'total',
         'status',
         'payment_type',
-        'midtrans_response'
+        'midtrans_response',
     ];
 
     public function saleItems()

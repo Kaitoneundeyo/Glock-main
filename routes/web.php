@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CobaController;
 use App\Http\Controllers\GambarProdukController;
 use App\Http\Controllers\InvoiceController;
@@ -58,3 +59,8 @@ Route::get('/cb', [CobaController::class, 'index'])->name('coba.index');
 Route::get('/by', [KonfirmasiController::class, 'index'])->name('konfir.index');
 Route::get('/bk', [HistoriController::class, 'index'])->name('bukti.index');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/checkout/transactions', [CheckoutController::class, 'index'])->name('checkout.transactions');
+    Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+    Route::get('/checkout/confirmation/{invoice}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+});
