@@ -18,7 +18,7 @@
                             <div class="text-sm text-gray-500">Qty: {{ $item->quantity }}</div>
 
                             @php
-                                $harga = $item->price;
+    $harga = $item->price;
                             @endphp
 
                             <div class="text-sm font-bold mt-1">
@@ -38,9 +38,12 @@
 
             <div class="text-right mt-4">
                 {{-- Nantinya ini bisa diarahkan ke Midtrans --}}
-                <a href="#" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
-                    Pilih Bayar
-                </a>
+                <form action="{{ route('checkout.pay', ['invoice' => $sale->invoice_number]) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
+                        Pilih Bayar
+                    </button>
+                </form>
             </div>
         </div>
     </div>

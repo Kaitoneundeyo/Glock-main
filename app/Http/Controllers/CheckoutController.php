@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cart_item;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -78,5 +79,19 @@ class CheckoutController extends Controller
             ->firstOrFail();
 
         return view('checkout.confirmation', compact('sale'));
+    }
+
+    public function pay(Request $request, $invoice)
+    {
+        $sale = Sale::with('saleItems.produk', 'user')
+            ->where('invoice_number', $invoice)
+            ->firstOrFail();
+
+        // Ambil Snap Token dari Midtrans
+        $midtransService = new MidtransService();
+        $snapToken = $midtransService->createSnapToken($sale);
+
+        // Tampilkan halaman pembayaran
+        return view('checkout.payment', compact('snapToken', 'sale'));
     }
 }

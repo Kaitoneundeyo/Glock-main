@@ -12,6 +12,7 @@ use App\Http\Controllers\HargaController;
 use App\Http\Controllers\HistoriController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\StokmasukController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TampilanController;
@@ -63,4 +64,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/transactions', [CheckoutController::class, 'index'])->name('checkout.transactions');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
     Route::get('/checkout/confirmation/{invoice}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
+    Route::post('/checkout/pay/{invoice}', [CheckoutController::class, 'pay'])->name('checkout.pay');
+    Route::get('/checkout/success/{invoice}', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/failure/{invoice}', [CheckoutController::class, 'failure'])->name('checkout.failure');
 });
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle']);
