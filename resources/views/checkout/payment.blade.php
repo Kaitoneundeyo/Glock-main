@@ -16,24 +16,35 @@
         data-client-key="{{ config('midtrans.client_key') }}"></script>
 
     <script type="text/javascript">
-        document.getElementById('pay-button').addEventListener('click', function () {
-            window.snap.pay('{{ $snapToken }}', {
-                onSuccess: function (result) {
-                    alert("Pembayaran berhasil!");
-                    console.log(result);
-                },
-                onPending: function (result) {
-                    alert("Menunggu pembayaran.");
-                    console.log(result);
-                },
-                onError: function (result) {
-                    alert("Pembayaran gagal!");
-                    console.log(result);
-                },
-                onClose: function () {
-                    alert('Anda menutup popup tanpa menyelesaikan pembayaran');
-                }
-            });
+        document.addEventListener('DOMContentLoaded', function () {
+            const payButton = document.getElementById('pay-button');
+
+            if (payButton) {
+                payButton.addEventListener('click', function () {
+                    if (typeof window.snap === 'undefined') {
+                        alert('Snap tidak tersedia. Pastikan script Midtrans sudah dimuat.');
+                        return;
+                    }
+
+                    window.snap.pay('{{ $snapToken }}', {
+                        onSuccess: function (result) {
+                            alert("Pembayaran berhasil!");
+                            window.location.href = "{{ route('checkout.success', ['invoice' => $invoice]) }}";
+                        },
+                        onPending: function (result) {
+                            alert("Menunggu pembayaran.");
+                            window.location.href = "{{ route('checkout.pending', ['invoice' => $invoice]) }}";
+                        },
+                        onError: function (result) {
+                            alert("Pembayaran gagal!");
+                            window.location.href = "{{ route('checkout.failure', ['invoice' => $invoice]) }}";
+                        },
+                        onClose: function () {
+                            alert('Anda menutup popup tanpa menyelesaikan pembayaran.');
+                        }
+                    });
+                });
+            }
         });
     </script>
 @endsection

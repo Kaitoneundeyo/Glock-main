@@ -16,16 +16,11 @@
                         <div>
                             <div class="font-semibold">{{ $item->produk->nama_produk }}</div>
                             <div class="text-sm text-gray-500">Qty: {{ $item->quantity }}</div>
-
-                            @php
-    $harga = $item->price;
-                            @endphp
-
                             <div class="text-sm font-bold mt-1">
-                                Harga: Rp{{ number_format($harga, 0, ',', '.') }}
+                                Harga: Rp{{ number_format($item->price, 0, ',', '.') }}
                             </div>
                             <div class="text-sm text-gray-600">
-                                Subtotal: Rp{{ number_format($harga * $item->quantity, 0, ',', '.') }}
+                                Subtotal: Rp{{ number_format($item->price * $item->quantity, 0, ',', '.') }}
                             </div>
                         </div>
                     </div>
@@ -37,7 +32,6 @@
             </div>
 
             <div class="text-right mt-4">
-                {{-- Nantinya ini bisa diarahkan ke Midtrans --}}
                 <form action="{{ route('checkout.pay', ['invoice' => $sale->invoice_number]) }}" method="POST">
                     @csrf
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">

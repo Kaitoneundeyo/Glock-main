@@ -12,6 +12,7 @@ use App\Http\Controllers\HargaController;
 use App\Http\Controllers\HistoriController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\StokmasukController;
 use App\Http\Controllers\SupplierController;
@@ -58,14 +59,26 @@ Route::get('/gb', [GambarProdukController::class, 'index'])->name('gambar.index'
 Route::get('/hg', [HargaController::class, 'index'])->name('harga.index');
 Route::get('/cb', [CobaController::class, 'index'])->name('coba.index');
 Route::get('/by', [KonfirmasiController::class, 'index'])->name('konfir.index');
-Route::get('/bk', [HistoriController::class, 'index'])->name('bukti.index');
 
 Route::middleware(['auth'])->group(function () {
+
+    // 🛒 Halaman transaksi dan proses checkout
     Route::get('/checkout/transactions', [CheckoutController::class, 'index'])->name('checkout.transactions');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+
+    // 🔍 Konfirmasi dan bayar berdasarkan invoice
     Route::get('/checkout/confirmation/{invoice}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
     Route::post('/checkout/pay/{invoice}', [CheckoutController::class, 'pay'])->name('checkout.pay');
-    Route::get('/checkout/success/{invoice}', [CheckoutController::class, 'success'])->name('checkout.success');
-    Route::get('/checkout/failure/{invoice}', [CheckoutController::class, 'failure'])->name('checkout.failure');
+
+    // ✅ Redirect Midtrans: hasil akhir transaksi (versi user)
+    Route::get('/checkout/success/{invoice}', [HistoriController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/failure/{invoice}', [HistoriController::class, 'failure'])->name('checkout.failure');
+    Route::get('/checkout/pending/{invoice}', [HistoriController::class, 'pending'])->name('checkout.pending');
+
+    // 📄 Lihat riwayat transaksi yang berhasil
+    Route::get('/riwayat-transaksi', [HistoriController::class, 'index'])->name('bukti.index');
 });
-Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle']);
+
+Route::get('/checkout/finish', [MidtransController::class, 'finish'])->name('checkout.finish');
+Route::get('/checkout/unfinish', [MidtransController::class, 'unfinish'])->name('checkout.unfinish');
+Route::get('/checkout/error', [MidtransController::class, 'error'])->name('checkout.error');

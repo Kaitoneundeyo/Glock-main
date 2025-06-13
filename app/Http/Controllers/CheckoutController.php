@@ -94,4 +94,5 @@ class CheckoutController extends Controller
         // Tampilkan halaman pembayaran
         return view('checkout.payment', compact('snapToken', 'sale'));
     }
+
 }
