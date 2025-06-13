@@ -36,14 +36,12 @@ Route::get('/user/{id}/edit', [UtamaController::class, 'edit'])->name('user.edit
 Route::put('/user/{id}/update', [UtamaController::class, 'update'])->name('user.update');
 Route::delete('/user/{id}', [UtamaController::class, 'destroy'])->name('user.destroy');
 
-
 Route::get('/kt', [CategoriesController::class, 'index'])->name('kategori.index');
 Route::get('/kt/create', [CategoriesController::class, 'create'])->name('kategori.create');
 Route::post('/kt/store', [CategoriesController::class, 'store'])->name('kategori.store');
 Route::get('/kt/{id}/edit', [CategoriesController::class, 'edit'])->name('kategori.edit');
 Route::put('/kt/{id}/update', [CategoriesController::class, 'update'])->name('kategori.update');
 Route::delete('/kt/{id}/destroy', [CategoriesController::class, 'destroy'])->name('kategori.destroy');
-
 
 Route::get('/pd', [ProdukController::class, 'index'])->name('produk.index');
 Route::get('/sp', [SupplierController::class, 'index'])->name('supplier.index');
@@ -60,8 +58,16 @@ Route::get('/hg', [HargaController::class, 'index'])->name('harga.index');
 Route::get('/cb', [CobaController::class, 'index'])->name('coba.index');
 Route::get('/by', [KonfirmasiController::class, 'index'])->name('konfir.index');
 
-Route::middleware(['auth'])->group(function () {
+// ✅ PERBAIKAN: Webhook harus di luar middleware auth dan di bagian atas
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle'])->name('midtrans.webhook');
 
+// ✅ Callback routes dari Midtrans (tidak perlu auth)
+Route::get('/checkout/finish', [CheckoutController::class, 'finish'])->name('checkout.finish');
+Route::get('/checkout/unfinish', [CheckoutController::class, 'unfinish'])->name('checkout.unfinish');
+Route::get('/checkout/error', [CheckoutController::class, 'error'])->name('checkout.error');
+
+// ✅ Routes yang memerlukan authentication
+Route::middleware(['auth'])->group(function () {
     // 🛒 Halaman transaksi dan proses checkout
     Route::get('/checkout/transactions', [CheckoutController::class, 'index'])->name('checkout.transactions');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
@@ -70,15 +76,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/confirmation/{invoice}', [CheckoutController::class, 'confirmation'])->name('checkout.confirmation');
     Route::post('/checkout/pay/{invoice}', [CheckoutController::class, 'pay'])->name('checkout.pay');
 
-    // ✅ Redirect Midtrans: hasil akhir transaksi (versi user)
-    Route::get('/checkout/success/{invoice}', [HistoriController::class, 'success'])->name('checkout.success');
-    Route::get('/checkout/failure/{invoice}', [HistoriController::class, 'failure'])->name('checkout.failure');
-    Route::get('/checkout/pending/{invoice}', [HistoriController::class, 'pending'])->name('checkout.pending');
-
-    // 📄 Lihat riwayat transaksi yang berhasil
-    Route::get('/riwayat-transaksi', [HistoriController::class, 'index'])->name('bukti.index');
+    // Manual callback routes (untuk testing, opsional)
+    Route::get('/checkout/success/{invoice}', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/failure/{invoice}', [CheckoutController::class, 'failure'])->name('checkout.failure');
+    Route::get('/checkout/pending/{invoice}', [CheckoutController::class, 'pending'])->name('checkout.pending');
 });
-
-Route::get('/checkout/finish', [MidtransController::class, 'finish'])->name('checkout.finish');
-Route::get('/checkout/unfinish', [MidtransController::class, 'unfinish'])->name('checkout.unfinish');
-Route::get('/checkout/error', [MidtransController::class, 'error'])->name('checkout.error');

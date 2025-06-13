@@ -31,11 +31,6 @@
                     <i class="fas fa-money-bill-wave"></i><span>TRANSAKSI</span>
                 </a>
             </li>
-            <li class="{{ request()->routeIs('bukti.index') ? 'active' : '' }}">
-                <a href="{{ route('bukti.index') }}" class="nav-link">
-                    <i class="fas fa-clipboard-list"></i><span>STRUK BELANJA</span>
-                </a>
-            </li>
             <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">
                 <a href="{{ route('user.index') }}" class="nav-link">
                     <i class="fas fa-users"></i><span>USER</span>

@@ -48,30 +48,4 @@ class MidtransController extends Controller
 
         return response()->json(['message' => 'Callback diterima dan diproses']);
     }
-
-    public function finish(Request $request)
-    {
-        return redirect()->route('bukti.index')->with('success', 'Transaksi selesai! Terima kasih telah berbelanja.');
-    }
-    public function failure(Request $request)
-    {
-        return redirect()->route('checkout.failure', ['invoice' => $request->invoice])
-            ->with('error', 'Pembayaran gagal. Silakan coba lagi.');
-    }
-
-    public function pending(Request $request)
-    {
-        return redirect()->route('checkout.pending', ['invoice' => $request->invoice])
-            ->with('warning', 'Pembayaran masih dalam proses. Silakan tunggu.');
-    }
-    public function unfinish(Request $request)
-    {
-        return redirect()->route('checkout.transactions')
-            ->with('info', 'Transaksi belum selesai. Silakan lanjutkan pembayaran.');
-    }
-    public function error(Request $request)
-    {
-        return redirect()->route('checkout.transactions')
-            ->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
-    }
 }
