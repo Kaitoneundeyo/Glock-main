@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stok_masuks', function (Blueprint $table) {
             $table->id();
             $table->string('no_invoice')->unique();
-            $table->date('tanggal_masuk');
+            $table->dateTime('tanggal_masuk')->default(now());
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('set null');
             $table->timestamps();
         });
