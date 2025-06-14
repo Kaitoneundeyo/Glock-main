@@ -18,7 +18,7 @@
             <li class="menu-header">Menu</li>
             <li class="{{ request()->routeIs('tampil.index') ? 'active' : '' }}">
                 <a href="{{ route('tampil.index') }}" class="nav-link">
-                    <i class="fas fa-home"></i><span>HOME</span>
+                    <i class="fas fa-home"></i><span>BERANDA</span>
                 </a>
             </li>
             <li class="{{ request()->routeIs('coba.index') ? 'active' : '' }}">
@@ -33,7 +33,7 @@
             </li>
             <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">
                 <a href="{{ route('user.index') }}" class="nav-link">
-                    <i class="fas fa-users"></i><span>USER</span>
+                    <i class="fas fa-users"></i><span>PENGGUNA</span>
                 </a>
             </li>
             <li class="{{ request()->routeIs('kategori.index') ? 'active' : '' }}">
