@@ -81,3 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkout/failure/{invoice}', [CheckoutController::class, 'failure'])->name('checkout.failure');
     Route::get('/checkout/pending/{invoice}', [CheckoutController::class, 'pending'])->name('checkout.pending');
 });
+
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('login.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+

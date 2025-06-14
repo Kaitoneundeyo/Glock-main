@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -9,9 +10,16 @@ class MidtransController extends Controller
 {
     public function callback(Request $request)
     {
-        Log::info('Callback diterima: ', $request->all());
+        return response()->json(['message' => 'OK'], 200);
+        Log::info('=== CALLBACK DEBUGGING ===');
+        Log::info('Full request data: ', $request->all());
+        Log::info('Transaction Status: ' . $request->transaction_status);
+        Log::info('Order ID: ' . $request->order_id);
+        Log::info('Signature Key: ' . $request->signature_key);
 
         $serverKey = config('midtrans.server_key');
+        Log::info('Server Key: ' . $serverKey);
+
         $hashed = hash(
             'sha512',
             $request->order_id .
@@ -19,6 +27,10 @@ class MidtransController extends Controller
                 $request->gross_amount .
                 $serverKey
         );
+
+        Log::info('Generated Hash: ' . $hashed);
+        Log::info('Received Signature: ' . $request->signature_key);
+        Log::info('Hash Match: ' . ($hashed === $request->signature_key ? 'YES' : 'NO'));
 
         if ($hashed !== $request->signature_key) {
             Log::warning('Signature tidak valid');
@@ -46,6 +58,6 @@ class MidtransController extends Controller
 
         Log::info("Transaksi untuk invoice {$sale->invoice_number} diupdate ke status: {$sale->status}");
 
-        return response()->json(['message' => 'Callback diterima dan diproses']);
+        return response()->json(['message' => 'Callback diterima dan diproses'], 200);
     }
 }

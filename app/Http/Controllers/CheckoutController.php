@@ -103,11 +103,12 @@ class CheckoutController extends Controller
                 'email' => $sale->user->email ?? 'email@example.com',
             ],
             // PERBAIKAN: Tambahkan callback URLs
-            'callbacks' => [
+            'callbacks' => [ 
                 'finish' => route('checkout.finish'),
                 'unfinish' => route('checkout.unfinish'),
                 'error' => route('checkout.error')
-            ]
+            ],
+            'notification_url' => route('midtrans.callback'),
         ]);
 
         return view('checkout.pay', compact('sale', 'snapToken', 'invoice'));
