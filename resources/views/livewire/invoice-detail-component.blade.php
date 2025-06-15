@@ -3,7 +3,7 @@
         <h2 class="text-2xl font-semibold text-gray-800">Detail Invoice</h2>
         <div class="mt-3 text-base text-gray-700 space-y-1">
             <p><strong>No Invoice:</strong> {{ $invoice->no_invoice }}</p>
-            <p><strong>Tanggal Masuk:</strong> {{ \Carbon\Carbon::parse($invoice->tanggal_masuk)->format('d M Y') }}</p>
+            <p><strong>Tanggal Masuk:</strong> {{ \Carbon\Carbon::parse($invoice->tanggal_masuk)->timezone('Asia/Makassar')->format('d M Y, H:i') }}</p>
         </div>
     </div>
 

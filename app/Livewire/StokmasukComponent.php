@@ -29,7 +29,7 @@ class StokmasukComponent extends Component
     public function mount()
     {
         $this->suppliers = Supplier::orderBy('nama_supplier')->get();
-        $this->tanggal_masuk = Carbon::now()->format('Y-m-d\TH:i');
+        $this->tanggal_masuk = Carbon::now()->timezone('Asia/Makassar')->format('d M Y, H:i');
     }
 
     protected function rules()
@@ -60,7 +60,7 @@ class StokmasukComponent extends Component
         $stok = Stok_masuk::findOrFail($id);
         $this->stokmasuk_id = $stok->id;
         $this->no_invoice = $stok->no_invoice;
-        $this->tanggal_masuk = Carbon::parse($stok->tanggal_masuk)->format('Y-m-d\TH:i');
+        $this->tanggal_masuk = Carbon::parse($stok->tanggal_masuk)->timezone('Asia/Makassar')->format('d M Y, H:i');
         $this->supplier_id = $stok->supplier_id;
         $this->isEdit = true;
     }
@@ -89,7 +89,7 @@ class StokmasukComponent extends Component
     public function resetForm()
     {
         $this->reset(['no_invoice', 'supplier_id', 'stokmasuk_id', 'isEdit']);
-        $this->tanggal_masuk = Carbon::now()->format('Y-m-d\TH:i');
+        $this->tanggal_masuk = Carbon::now()->timezone('Asia/Makassar')->format('d M Y, H:i');
     }
 
     public function resetFilter()

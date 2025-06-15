@@ -33,7 +33,7 @@
                         <tr>
                             <td class="px-4 py-2 border">{{ $loop->iteration }}</td>
                             <td class="px-4 py-2 border">{{ $invoice->no_invoice }}</td>
-                            <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($invoice->tanggal)->format('d-m-Y') }}
+                            <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($invoice->tanggal)->timezone('Asia/Makassar')->format('d M Y, H:i') }}
                             </td>
                             <td class="px-4 py-2 border">
                                 <a href="{{ route('item.index', ['id' => $invoice->id]) }}"
