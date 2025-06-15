@@ -1,0 +1,14 @@
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Midtrans\Snap;
+use Midtrans\Config;
+
+process
+confirmation
+pay
+finish
+unfinish
+error
+success
+failure
+pending

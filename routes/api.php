@@ -1,11 +1,13 @@
 <?php
 
-use App\Http\Controllers\CheckoutController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\MidtransWebhookController;
 
-// Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'handle']);
-Route::post('/midtrans/callback', [MidtransController::class, 'callback'])->name('midtrans.callback');
-Route::get('/checkout/finish', [CheckoutController::class, 'successFromFrontend'])->name('checkout.finish');
+// ✅ Route untuk menerima notifikasi dari server Midtrans (webhook)
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'notification'])
+    ->name('midtrans.webhook');
+
+// ⚠️ Opsional: Jika kamu ingin menerima callback (postback) dari Midtrans secara server-side
+// (biasanya sudah ditangani via webhook, jadi ini jarang diperlukan)
+Route::post('/midtrans/callback', [MidtransController::class, 'finish']);

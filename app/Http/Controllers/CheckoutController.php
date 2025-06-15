@@ -2,170 +2,229 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart_item;
-use App\Models\Sale;
-use App\Models\SaleItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Midtrans\Snap;
-use Midtrans\Config;
+use Illuminate\Support\Facades\DB;
+use App\Models\Cart_item;
+use App\Models\StockReservation;
+use App\Models\Order;
+use App\Models\OrderItem;
 
 class CheckoutController extends Controller
 {
-    // 🔹 Halaman Riwayat Transaksi
-    public function index()
-    {
-        $sales = Sale::with('saleItems.produk.gambarUtama')
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
-
-        return view('checkout.transactions', compact('sales'));
-    }
-
-    // 🔹 Proses Checkout
+    /**
+     * Process checkout - Convert soft reservations to hard reservations
+     */
     public function process(Request $request)
     {
         $user = Auth::user();
 
-        $cartItems = Cart_item::with('produk.hargaTerbaru')
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        // Get cart items
+        $cartItems = Cart_item::with('produk')
             ->where('user_id', $user->id)
             ->get();
 
         if ($cartItems->isEmpty()) {
-            return redirect()->back()->with('error', 'Keranjang Anda kosong.');
+            return redirect()->back()->with('error', 'Keranjang belanja kosong.');
         }
 
-        $total = $cartItems->sum(function ($item) {
-            $harga = $item->produk->hargaTerbaru->harga_promo > 0
-                ? $item->produk->hargaTerbaru->harga_promo
-                : $item->produk->hargaTerbaru->harga_jual;
+        // Clean expired reservations
+        StockReservation::cleanExpiredReservations();
 
-            return $harga * $item->quantity;
-        });
+        $errors = [];
+        $hardReservations = [];
 
-        $sale = Sale::create([
-            'user_id' => $user->id,
-            'invoice_number' => 'NOTA-' . strtoupper(Str::random(8)),
-            'total' => $total,
-            'status' => 'pending',
-            'tanggal_transaksi' => now(),
-        ]);
+        DB::beginTransaction();
+        try {
+            // Validate and convert each item to hard reservation
+            foreach ($cartItems as $item) {
+                // Check if soft reservation exists and is sufficient
+                $softReservation = StockReservation::where('user_id', $user->id)
+                    ->where('produk_id', $item->produk_id)
+                    ->where('type', 'soft')
+                    ->active()
+                    ->first();
 
-        foreach ($cartItems as $item) {
-            $harga = $item->produk->hargaTerbaru->harga_promo > 0
-                ? $item->produk->hargaTerbaru->harga_promo
-                : $item->produk->hargaTerbaru->harga_jual;
+                if (!$softReservation || $softReservation->quantity < $item->quantity) {
+                    $errors[] = "Reservasi untuk {$item->produk->nama_produk} tidak valid atau sudah kedaluwarsa.";
+                    continue;
+                }
 
-            $sale->saleItems()->create([
-                'produk_id' => $item->produk_id,
-                'quantity' => $item->quantity,
-                'price' => $harga,
+                // Convert to hard reservation
+                $hardReservation = StockReservation::convertToHardReservation(
+                    $user->id,
+                    $item->produk_id,
+                    $item->quantity
+                );
+
+                if (!$hardReservation) {
+                    $errors[] = "Gagal mengunci stok untuk {$item->produk->nama_produk}.";
+                    continue;
+                }
+
+                $hardReservations[] = $hardReservation;
+            }
+
+            if (!empty($errors)) {
+                DB::rollBack();
+                return redirect()->back()->with('error', implode(' ', $errors));
+            }
+
+            // Create order
+            $totalAmount = $cartItems->sum(function ($item) {
+                $harga = $item->produk->hargaTerbaru?->harga_promo > 0
+                    ? $item->produk->hargaTerbaru->harga_promo
+                    : $item->produk->hargaTerbaru->harga_jual ?? 0;
+                return $harga * $item->quantity;
+            });
+
+            $order = Order::create([
+                'user_id' => $user->id,
+                'order_number' => 'ORD-' . time() . '-' . $user->id,
+                'total_amount' => $totalAmount,
+                'status' => 'pending_payment',
+                'payment_method' => null,
             ]);
+
+            // Create order items
+            foreach ($cartItems as $item) {
+                $harga = $item->produk->hargaTerbaru?->harga_promo > 0
+                    ? $item->produk->hargaTerbaru->harga_promo
+                    : $item->produk->hargaTerbaru->harga_jual ?? 0;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'produk_id' => $item->produk_id,
+                    'quantity' => $item->quantity,
+                    'price' => $harga,
+                    'subtotal' => $harga * $item->quantity,
+                ]);
+            }
+
+            DB::commit();
+
+            // Clear cart items (but keep hard reservations for payment)
+            Cart_item::where('user_id', $user->id)->delete();
+
+            // Redirect to confirmation page
+            return redirect()->route('checkout.confirmation', ['order' => $order->order_number])
+                ->with('success', 'Checkout berhasil! Silakan lanjutkan pembayaran.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Release any hard reservations that were created
+            foreach ($hardReservations as $reservation) {
+                $reservation->delete();
+            }
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat checkout: ' . $e->getMessage());
         }
-
-        Cart_item::where('user_id', $user->id)->delete();
-
-        return redirect()->route('checkout.confirmation', ['invoice' => $sale->invoice_number]);
     }
 
-    // 🔹 Halaman Konfirmasi
-    public function confirmation($invoice)
+    /**
+     * Show all user transactions
+     */
+    public function transactions(Request $request)
     {
-        $sale = Sale::with(['saleItems.produk.gambarUtama', 'user'])
-            ->where('invoice_number', $invoice)
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Ambil status dan order_id dari query string
+        $status = $request->query('status');
+        $orderId = $request->query('order');
+
+        $orders = Order::with(['orderItems.produk'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Jika ada order_id, cari order tersebut
+        $highlightOrder = null;
+        if ($orderId) {
+            $highlightOrder = Order::where('id', $orderId)
+                ->where('user_id', $user->id)
+                ->first();
+        }
+
+        return view('checkout.transactions', compact('orders', 'status', 'highlightOrder'));
+    }
+
+
+    /**
+     * Show confirmation page
+     */
+    public function confirmation($orderNumber)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::with(['orderItems.produk.gambarUtama', 'orderItems.produk.kategori'])
+            ->where('order_number', $orderNumber)
+            ->where('user_id', $user->id)
             ->firstOrFail();
 
-        return view('checkout.confirmation', compact('sale'));
-    }
+        // Check if hard reservations are still valid
+        if ($order->status === 'pending_payment') {
+            $hardReservations = StockReservation::where('user_id', $user->id)
+                ->where('type', 'hard')
+                ->active()
+                ->get();
 
-    // 🔹 Halaman Pembayaran Snap Midtrans
-    public function pay(Request $request, $invoice)
-    {
-        $sale = Sale::where('invoice_number', $invoice)->firstOrFail();
-
-        // 🛠️ Konfigurasi Midtrans - PERBAIKAN: gunakan nama kunci yang benar
-        Config::$serverKey = config('midtrans.server_key'); // Ubah dari serverKey ke server_key
-        Config::$clientKey = config('midtrans.client_key'); // Ubah dari clientKey ke client_key
-        Config::$isProduction = config('midtrans.is_production', false); // Ubah dari isProduction ke is_production
-        Config::$isSanitized = config('midtrans.is_sanitized', true); // Ubah dari isSanitized ke is_sanitized
-        Config::$is3ds = config('midtrans.is_3ds', true); // Ubah dari is3ds ke is_3ds
-
-        // 🔁 Buat Snap Token
-        $snapToken = Snap::getSnapToken([
-            'transaction_details' => [
-                'order_id' => $sale->invoice_number,
-                'gross_amount' => (int)$sale->total, // Pastikan ini integer
-            ],
-            'customer_details' => [
-                'first_name' => $sale->user->name ?? 'Pelanggan',
-                'email' => $sale->user->email ?? 'email@example.com',
-            ],
-            // PERBAIKAN: Tambahkan callback URLs
-            'callbacks' => [ 
-                'finish' => route('checkout.finish'),
-                'unfinish' => route('checkout.unfinish'),
-                'error' => route('checkout.error')
-            ],
-            'notification_url' => route('midtrans.callback'),
-        ]);
-
-        return view('checkout.pay', compact('sale', 'snapToken', 'invoice'));
-    }
-
-    // 🔹 Callback dari frontend Midtrans
-    public function finish(Request $request)
-    {
-        $orderId = $request->order_id;
-        $statusCode = $request->status_code;
-        $transactionStatus = $request->transaction_status;
-
-        if ($orderId) {
-            $sale = Sale::where('invoice_number', $orderId)->first();
-
-            if ($sale) {
-                // Status akan diupdate oleh webhook, jadi kita hanya redirect
-                return redirect()->route('checkout.transactions')
-                    ->with('success', 'Terima kasih! Status pembayaran akan diperbarui secara otomatis.');
+            if ($hardReservations->isEmpty()) {
+                // Hard reservations expired, cancel order
+                $order->update(['status' => 'cancelled']);
+                return redirect()->route('katalog')
+                    ->with('error', 'Waktu pembayaran habis. Pesanan dibatalkan.');
             }
         }
 
+        return view('checkout.confirmation', compact('order'));
+    }
+
+    /**
+     * Cancel order and release reservations
+     */
+    public function cancelOrder(Order $order)
+    {
+        $user = Auth::user();
+
+        if ($order->user_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!in_array($order->status, ['pending_payment', 'awaiting_payment'])) {
+            return redirect()->back()->with('error', 'Pesanan tidak dapat dibatalkan.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Release hard reservations
+            StockReservation::where('user_id', $order->user_id)
+                ->where('type', 'hard')
+                ->delete();
+
+            // Update order status
+            $order->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancellation_reason' => 'user_cancellation'
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
         return redirect()->route('checkout.transactions')
-            ->with('info', 'Transaksi telah selesai.');
-    }
-
-    public function unfinish(Request $request)
-    {
-        return redirect()->route('checkout.transactions')
-            ->with('warning', 'Pembayaran belum diselesaikan.');
-    }
-
-    public function error(Request $request)
-    {
-        return redirect()->route('checkout.transactions')
-            ->with('error', 'Terjadi kesalahan dalam proses pembayaran.');
-    }
-
-    // 🔹 Callback manual (opsional) - untuk testing
-    public function success($invoice)
-    {
-        $sale = Sale::where('invoice_number', $invoice)->firstOrFail();
-        $sale->update(['status' => 'success']);
-        return redirect()->route('checkout.transactions')->with('success', 'Pembayaran berhasil!');
-    }
-
-    public function failure($invoice)
-    {
-        $sale = Sale::where('invoice_number', $invoice)->firstOrFail();
-        $sale->update(['status' => 'failure']);
-        return redirect()->route('checkout.transactions')->with('error', 'Pembayaran gagal.');
-    }
-
-    public function pending($invoice)
-    {
-        $sale = Sale::where('invoice_number', $invoice)->firstOrFail();
-        $sale->update(['status' => 'pending']);
-        return redirect()->route('checkout.transactions')->with('warning', 'Pembayaran masih tertunda.');
+            ->with('success', 'Pesanan berhasil dibatalkan.');
     }
 }

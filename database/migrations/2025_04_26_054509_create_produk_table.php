@@ -21,7 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('categories_id');
             $table->integer('stok')->default(0);
             $table->timestamps();
-    });
+        });
     }
     /**
      * Reverse the migrations.
