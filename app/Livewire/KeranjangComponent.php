@@ -11,6 +11,7 @@ class KeranjangComponent extends Component
 {
     public $cartItems;
 
+
     public function mount()
     {
         $this->loadCartItems();

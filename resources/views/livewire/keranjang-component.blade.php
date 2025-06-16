@@ -27,7 +27,8 @@
                         <ul class="text-red-700 text-sm mt-2 ml-4">
                             @foreach($stockWarnings as $warning)
                                 <li>• {{ $warning->produk->nama_produk }}:
-                                    Anda pesan {{ $warning->quantity }}, tersedia {{ $this->getDisplayStock($warning->produk_id) }}
+                                    Anda pesan {{ $warning->quantity }}, tersedia
+                                    {{ $this->getDisplayStock($warning->produk_id) }}
                                 </li>
                             @endforeach
                         </ul>
@@ -123,7 +124,8 @@
             <div class="text-center py-12">
                 <div class="text-gray-400 text-6xl mb-4">🛒</div>
                 <p class="text-gray-500 text-lg">Keranjang Anda kosong.</p>
-                <a href="{{ route('tampil.index') }}" class="inline-block mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                <a href="{{ route('tampil.index') }}"
+                    class="inline-block mt-4 bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
                     Mulai Belanja
                 </a>
             </div>
@@ -135,8 +137,8 @@
                 <div class="text-sm text-blue-800">
                     <div class="font-semibold mb-2">ℹ️ Informasi Reservasi:</div>
                     <ul class="space-y-1 text-xs">
-                        <li>• Produk di keranjang direservasi selama 30 menit</li>
-                        <li>• Saat checkout, reservasi akan dikunci selama 15 menit untuk pembayaran</li>
+                        <li>• Produk di keranjang direservasi selama 60 menit</li>
+                        <li>• Saat checkout, reservasi akan dikunci selama 30 menit untuk pembayaran</li>
                         <li>• Jika tidak dibayar dalam waktu tersebut, reservasi akan dibatalkan otomatis</li>
                     </ul>
                 </div>

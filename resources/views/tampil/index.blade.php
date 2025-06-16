@@ -103,10 +103,23 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h1>HOME</h1>
+            <h1>BERANDA</h1>
         </div>
         <div>
             @livewire('katalog-component')
         </div>
-
+    </section>
+    <script>
+        window.addEventListener('cart-toast', event => {
+            Swal.fire({
+                toast: true,
+                position: 'bottom-end',
+                icon: event.detail.type,
+                title: event.detail.message,
+                showConfirmButton: false,
+                timer: 7000,
+                timerProgressBar: true,
+            });
+        });
+    </script>
 @endsection

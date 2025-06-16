@@ -1,71 +1,78 @@
 <div class="container mt-5">
-    <div class="row">
-        @foreach ($produks as $pro)
-            @php $availableStock = $this->getAvailableStock($pro->id); @endphp
-            <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
-                <div class="product-card {{ $availableStock <= 0 ? 'out-of-stock' : '' }}">
-                    <img src="{{ $pro->gambarUtama && $pro->gambarUtama->path
-                        ? asset('storage/' . $pro->gambarUtama->path)
-                        : asset('images/default-product.png') }}"
-                        alt="{{ $pro->nama_produk }}"
-                        class="product-image {{ $availableStock <= 0 ? 'opacity-50' : '' }}">
+    <div class="container mx-auto px-4 mt-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            @foreach ($produks as $pro)
+                    @php $availableStock = $this->getAvailableStock($pro->id); @endphp
 
-                    <div class="product-body">
-                        <div class="mb-1">
-                            @if($pro->hargaTerbaru && $pro->hargaTerbaru->harga_promo > 0 && $pro->hargaTerbaru->harga_promo < $pro->hargaTerbaru->harga_jual)
-                                <span class="badge-custom">Promo</span>
-                            @endif
+                    <div class="bg-white border rounded-lg shadow hover:shadow-md p-2 flex flex-col">
+                        {{-- Gambar Produk --}}
+                        <img src="{{ $pro->gambarUtama && $pro->gambarUtama->path
+                ? asset('storage/' . $pro->gambarUtama->path)
+                : asset('images/default-product.png') }}" alt="{{ $pro->nama_produk }}"
+                            class="w-full h-48 object-cover rounded {{ $availableStock <= 0 ? 'opacity-50' : '' }}">
 
-                            @if($pro->hargaTerbaru && $pro->hargaTerbaru->cod)
-                                <span class="badge-custom">COD</span>
-                            @endif
+                        {{-- Konten Produk --}}
+                        <div class="mt-2 flex-1 flex flex-col justify-between">
+                            <div class="mb-1 space-y-1">
+                                {{-- Badges --}}
+                                <div class="flex flex-wrap gap-1">
+                                    @if($pro->hargaTerbaru && $pro->hargaTerbaru->harga_promo > 0 && $pro->hargaTerbaru->harga_promo < $pro->hargaTerbaru->harga_jual)
+                                        <span class="text-xs bg-red-400 text-white px-2 py-0.5 rounded">Promo XTRA</span>
+                                    @endif
 
-                            @if($availableStock <= 0)
-                                <span class="badge bg-danger">Habis</span>
-                            @elseif($availableStock <= 5)
-                                <span class="badge bg-warning">Sisa {{ $availableStock }}</span>
-                            @endif
-                        </div>
+                                    @if($pro->hargaTerbaru && $pro->hargaTerbaru->cod)
+                                        <span class="text-xs bg-pink-500 text-white px-2 py-0.5 rounded">COD</span>
+                                    @endif
 
-                        <div class="product-title">{{ $pro->nama_produk }}</div>
+                                    @if($availableStock <= 0)
+                                        <span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded">Habis</span>
+                                    @elseif($availableStock <= 5)
+                                        <span class="text-xs bg-yellow-300 text-gray-800 px-2 py-0.5 rounded">Sisa
+                                            {{ $availableStock }}</span>
+                                    @endif
+                                </div>
 
-                        <div class="stok-info">
-                            {{ $pro->kategori->name ?? '-' }}<br>
-                            <span class="stock-display {{ $availableStock <= 0 ? 'text-danger' : ($availableStock <= 5 ? 'text-warning' : 'text-success') }}">
-                                Tersedia: {{ $availableStock }}
-                            </span>
-                        </div>
+                                {{-- Nama & Kategori --}}
+                                <div class="font-semibold text-sm line-clamp-2">
+                                    {{ $pro->nama_produk }}
+                                </div>
 
-                        <div class="mt-2">
-                            @php
-                                $promo = $pro->hargaTerbaru->harga_promo ?? 0;
-                                $jual = $pro->hargaTerbaru->harga_jual ?? 0;
-                            @endphp
+                                <div class="text-xs text-gray-500">
+                                    {{ $pro->kategori->name ?? '-' }}
+                                </div>
+                            </div>
 
-                            @if($promo > 0 && $promo < $jual)
-                                <div class="harga">Rp{{ number_format($promo, 0, ',', '.') }}</div>
-                                <div class="harga-coret">Rp{{ number_format($jual, 0, ',', '.') }}</div>
-                            @else
-                                <div class="harga-normal">Rp{{ number_format($jual, 0, ',', '.') }}</div>
-                            @endif
-                        </div>
+                            {{-- Harga --}}
+                            <div>
+                                @php
+                                    $promo = $pro->hargaTerbaru->harga_promo ?? 0;
+                                    $jual = $pro->hargaTerbaru->harga_jual ?? 0;
+                                @endphp
 
-                        <div class="float-footer">
-                            @if($availableStock > 0)
-                                <button class="btn btn-sm btn-outline-primary w-100 mt-2"
-                                    wire:click="showAddToCartModal({{ $pro->id }})">
-                                    Tambah ke Keranjang
-                                </button>
-                            @else
-                                <button class="btn btn-sm btn-secondary w-100 mt-2" disabled>
-                                    Stok Habis
-                                </button>
-                            @endif
+                                @if($promo > 0 && $promo < $jual)
+                                    <div class="text-red-500 font-bold text-sm">Rp{{ number_format($promo, 0, ',', '.') }}</div>
+                                    <div class="text-xs text-gray-400 line-through">Rp{{ number_format($jual, 0, ',', '.') }}</div>
+                                @else
+                                    <div class="text-gray-800 font-semibold text-sm">Rp{{ number_format($jual, 0, ',', '.') }}</div>
+                                @endif
+                            </div>
+
+                            {{-- Tombol --}}
+                            <div class="mt-2">
+                                @if($availableStock > 0)
+                                    <button class="btn btn-sm btn-primary w-full mt-2" wire:click="toCart({{ $pro->id }})">
+                                        Tambah ke Keranjang
+                                    </button>
+                                @else
+                                    <button class="btn btn-sm btn-secondary w-full mt-2" disabled>
+                                        Stok Habis
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
 
     @if($showModal && $selectedProduk)

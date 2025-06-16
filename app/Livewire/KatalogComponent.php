@@ -8,15 +8,20 @@ use App\Models\Produk;
 use App\Models\Cart_item;
 use App\Models\GambarProduk;
 use App\Models\StockReservation;
+use Livewire\InteractsWithBrowserEvents;
+use Livewire\Attributes\On;
+
 
 class KatalogComponent extends Component
 {
+    use InteractsWithBrowserEvents;
     public $produks;
     public $gambarProduk;
     public $showModal = false;
     public $selectedProduk;
     public $quantity = 1;
     public $availableStock = 0;
+
 
     public function mount()
     {
@@ -47,7 +52,7 @@ class KatalogComponent extends Component
     /**
      * Tampilkan modal untuk memilih jumlah produk
      */
-    public function showAddToCartModal($produk_id)
+    public function toCart($produk_id)
     {
         $this->selectedProduk = Produk::with('hargaTerbaru')->find($produk_id);
 
@@ -84,32 +89,41 @@ class KatalogComponent extends Component
     {
         $user = Auth::user();
         if (!$user) {
-            session()->flash('error', 'Silakan login terlebih dahulu.');
+            $this->dispatchBrowserEvent('cart-toast', [
+                'type' => 'error',
+                'message' => 'Silakan login terlebih dahulu.'
+            ]);
             return;
         }
 
         if (!$this->selectedProduk) {
-            session()->flash('error', 'Produk belum dipilih.');
+            $this->dispatchBrowserEvent('cart-toast', [
+                'type' => 'error',
+                'message' => 'Produk belum dipilih.'
+            ]);
             return;
         }
 
         $produk = $this->selectedProduk;
 
-        // Validasi quantity
         if ($this->quantity <= 0) {
-            session()->flash('error', 'Jumlah harus lebih dari 0.');
+            $this->dispatchBrowserEvent('cart-toast', [
+                'type' => 'error',
+                'message' => 'Jumlah harus lebih dari 0.'
+            ]);
             return;
         }
 
-        // Get current available stock
         $availableStock = $this->getAvailableStock($produk->id);
 
         if ($this->quantity > $availableStock) {
-            session()->flash('error', "Stok tidak mencukupi. Tersedia: {$availableStock} item.");
+            $this->dispatchBrowserEvent('cart-toast', [
+                'type' => 'error',
+                'message' => "Stok tidak mencukupi. Tersedia: {$availableStock} item."
+            ]);
             return;
         }
 
-        // Create soft reservation
         $reservation = StockReservation::createSoftReservation(
             $user->id,
             $produk->id,
@@ -118,11 +132,13 @@ class KatalogComponent extends Component
         );
 
         if (!$reservation) {
-            session()->flash('error', 'Gagal mereservasi stok. Silakan coba lagi.');
+            $this->dispatchBrowserEvent('cart-toast', [
+                'type' => 'error',
+                'message' => 'Gagal mereservasi stok. Silakan coba lagi.'
+            ]);
             return;
         }
 
-        // Update or create cart item
         $cartItem = Cart_item::where('user_id', $user->id)
             ->where('produk_id', $produk->id)
             ->first();
@@ -137,16 +153,13 @@ class KatalogComponent extends Component
             ]);
         }
 
-        // Reset modal
         $this->reset(['showModal', 'selectedProduk', 'quantity', 'availableStock']);
-
-        // Reload products to update display
         $this->loadProduk();
 
-        session()->flash('success', 'Produk berhasil ditambahkan ke keranjang!');
-
-        // Redirect ke keranjang
-        return redirect()->route('coba.index');
+        $this->dispatchBrowserEvent('cart-toast', [
+            'type' => 'success',
+            'message' => 'Produk berhasil ditambahkan ke keranjang!'
+        ]);
     }
 
     /**

@@ -73,6 +73,6 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/home'); // arahkan sesuai kebutuhan
+        return redirect('/dashboard'); // arahkan sesuai kebutuhan
     }
 }

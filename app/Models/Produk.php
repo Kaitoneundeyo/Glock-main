@@ -57,8 +57,8 @@ class Produk extends Model
     }
 
     // 🔁 Item Penjualan
-    public function saleItems()
+    public function orderItems()
     {
-        return $this->hasMany(SaleItem::class, 'produk_id');
+        return $this->hasMany(OrderItem::class, 'produk_id');
     }
 }

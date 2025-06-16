@@ -22,8 +22,17 @@
                 </a>
             </li>
             <li class="{{ request()->routeIs('coba.index') ? 'active' : '' }}">
-                <a href="{{ route('coba.index') }}" class="nav-link">
-                    <i class="fas fa-shopping-basket"></i><span>KERANJANG</span>
+                <a href="{{ route('coba.index') }}" class="nav-link flex items-center gap-2">
+                    <div class="relative">
+                        <i class="fas fa-shopping-basket"></i>
+                        @if($cartCount > 0)
+                            <span
+                                class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[18px] h-5 px-1 flex items-center justify-center text-center text-xs shadow">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
+                    </div>
+                    <span>KERANJANG</span>
                 </a>
             </li>
             <li class="{{ request()->routeIs('checkout.transactions') ? 'active' : '' }}">
@@ -79,4 +88,3 @@
         </ul>
     </aside>
 </div>
-

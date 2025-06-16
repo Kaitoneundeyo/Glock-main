@@ -14,8 +14,8 @@ class User extends Authenticatable
         'name', 'email', 'password', 'role', 'avatar'
     ];
 
-    public function sales()
+    public function orders()
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasMany(Order::class);
     }
 }

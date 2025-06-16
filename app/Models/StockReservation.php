@@ -95,7 +95,7 @@ class StockReservation extends Model
             ->where('type', 'soft')
             ->active()
             ->first();
-        $expires_at  = now('Asia/Makassar')->addMinutes(30);
+        $expires_at  = now('Asia/Makassar')->addMinutes(60);
         if ($existing) {
             // Update existing reservation
             $newQuantity = $existing->quantity + $quantity;
@@ -108,7 +108,7 @@ class StockReservation extends Model
             if ($newQuantity > $available) {
                 return false;
             }
-            // Extend expiry to 30 minutes
+            // Extend expiry to 60 minutes
             $existing->update([
                 'quantity' => $newQuantity,
                 'expires_at' => $expires_at, // Extend expiry
@@ -123,7 +123,7 @@ class StockReservation extends Model
                 'produk_id' => $produk_id,
                 'quantity' => $quantity,
                 'type' => 'soft',
-                'expires_at' => $expires_at, // 30 minutes for cart
+                'expires_at' => $expires_at, // 60 minutes for cart
                 'session_id' => $session_id
             ]);
         }
@@ -145,14 +145,14 @@ class StockReservation extends Model
         if (!$softReservation || $softReservation->quantity < $quantity) {
             return false;
         }
-        $expires_at = now('Asia/Makassar')->addMinutes(15); // 15 minutes for payment
+        $expires_at = now('Asia/Makassar')->addMinutes(30); // 30 minutes for payment
         // Create hard reservation
         $hardReservation = self::create([
             'user_id' => $user_id,
             'produk_id' => $produk_id,
             'quantity' => $quantity,
             'type' => 'hard',
-            'expires_at' => $expires_at, // 15 minutes for payment
+            'expires_at' => $expires_at, // 30 minutes for payment
             'session_id' => $softReservation->session_id
         ]);
 
