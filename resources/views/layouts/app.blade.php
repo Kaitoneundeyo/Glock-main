@@ -20,6 +20,7 @@
     <!-- Template CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/components.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <!-- VITE -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])

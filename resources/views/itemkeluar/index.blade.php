@@ -3,10 +3,11 @@
 @section('content')
     <section class="section">
         <div class="section-header">
-            <h1>INVOICE</h1>
+            <h1>DETAIL STOK KELUAR</h1>
         </div>
+
         <div>
-            @livewire('stokmasuk-component')
+            @livewire('stok-keluar-item-component', ['id' => $id])
         </div>
     </section>
 @endsection

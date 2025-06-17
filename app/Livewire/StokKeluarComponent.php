@@ -4,8 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Illuminate\Validation\Rule;
-use App\Models\Produk;
-use App\Models\HargaProduk;
+use App\Models\StokKeluar;
 
 class StokKeluarComponent extends Component
 {
@@ -13,8 +12,7 @@ class StokKeluarComponent extends Component
     public $tanggal_keluar;
     public $jenis;
 
-    // Menyimpan item sementara sebelum disimpan ke DB
-    public $items = [];
+    public $stokKeluarId = null;
 
     public function mount()
     {
@@ -24,7 +22,7 @@ class StokKeluarComponent extends Component
     protected function rules()
     {
         return [
-            'no_keluar' => ['required', 'string', 'unique:stok_keluars,no_keluar'],
+            'no_keluar' => ['required', 'string'],
             'tanggal_keluar' => ['required', 'date'],
             'jenis' => ['required', Rule::in(['expired', 'rusak'])],
         ];
@@ -35,32 +33,57 @@ class StokKeluarComponent extends Component
         return ['expired', 'rusak'];
     }
 
-    public function hapusItem($index)
+    public function save()
     {
-        unset($this->items[$index]);
-        $this->items = array_values($this->items); // reset indeks agar tetap urut
+        $this->validate();
+
+        if ($this->stokKeluarId) {
+            // update
+            $stok = StokKeluar::findOrFail($this->stokKeluarId);
+            $stok->update([
+                'no_keluar' => $this->no_keluar,
+                'tanggal_keluar' => $this->tanggal_keluar,
+                'jenis' => $this->jenis,
+            ]);
+            session()->flash('message', 'Data berhasil diperbarui.');
+        } else {
+            // store
+            StokKeluar::create([
+                'no_keluar' => $this->no_keluar,
+                'tanggal_keluar' => $this->tanggal_keluar,
+                'jenis' => $this->jenis,
+            ]);
+            session()->flash('message', 'Data berhasil disimpan.');
+        }
+
+        $this->resetForm();
     }
 
-    public function detailItem($index)
+    public function editItem($id)
     {
-        $item = $this->items[$index] ?? null;
-
-        if ($item) {
-            $this->dispatchBrowserEvent('show-detail-item', ['item' => $item]);
-        }
+        $stok = StokKeluar::findOrFail($id);
+        $this->stokKeluarId = $stok->id;
+        $this->no_keluar = $stok->no_keluar;
+        $this->tanggal_keluar = \Carbon\Carbon::parse($stok->tanggal_keluar)->format('Y-m-d\TH:i');
+        $this->jenis = $stok->jenis;
     }
 
-    public function editItem($index)
+    public function hapusItem($id)
     {
-        $item = $this->items[$index] ?? null;
+        $stok = StokKeluar::findOrFail($id);
+        $stok->delete();
+        session()->flash('message', 'Data berhasil dihapus.');
+    }
 
-        if ($item) {
-            $this->dispatchBrowserEvent('edit-item', ['index' => $index, 'item' => $item]);
-        }
+    public function resetForm()
+    {
+        $this->reset(['no_keluar', 'tanggal_keluar', 'jenis', 'stokKeluarId']);
+        $this->tanggal_keluar = now()->timezone('Asia/Makassar')->format('Y-m-d\TH:i');
     }
 
     public function render()
     {
-        return view('livewire.stok-keluar-component');
+        $items = StokKeluar::orderBy('tanggal_keluar', 'desc')->get();
+        return view('livewire.stok-keluar-component', compact('items'));
     }
 }

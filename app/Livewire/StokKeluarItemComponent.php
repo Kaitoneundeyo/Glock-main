@@ -1,45 +1,3 @@
-<!-- Komponen Livewire Blade (contoh: stok-masuk.blade.php) -->
-<div>
-    <select id="supplier-select" wire:model="supplier_id">
-        <option value="">-- Pilih Supplier --</option>
-        @foreach($suppliers as $supplier)
-            <option value="{{ $supplier->id }}">{{ $supplier->nama_supplier }}</option>
-        @endforeach
-    </select>
-</div>
-
-<!-- Langsung letakkan script di bawah -->
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        new TomSelect('#supplier-select', {
-            create: false,
-            allowEmptyOption: true,
-            placeholder: '-- Pilih Supplier --',
-            onChange(value) {
-                @this.set('supplier_id', value);
-            }
-        });
-    });
-
-    Livewire.hook('message.processed', (message, component) => {
-        if (!document.querySelector('#supplier-select.tomselected')) {
-            new TomSelect('#supplier-select', {
-                create: false,
-                allowEmptyOption: true,
-                placeholder: "-- Pilih Supplier --",
-                onChange(value) {
-                    Livewire.find(component.id).set('supplier_id', value);
-                }
-            });
-        }
-    });
-</script>
-
-langsung inject nanti coba
-
 <?php
 
 namespace App\Livewire;
@@ -50,7 +8,7 @@ use App\Models\StokKeluar;
 use App\Models\StokKeluarItem;
 use Livewire\WithPagination;
 
-class StokKeluarDetailComponent extends Component
+class StokKeluarItemComponent extends Component
 {
     use WithPagination;
 
@@ -58,7 +16,7 @@ class StokKeluarDetailComponent extends Component
     public $stokKeluar;
     public $items = [];
 
-    public $produk_id, $jumlah, $harga_jual;
+    public $produk_id, $jumlah, $harga_beli, $harga_jual;
     public $produkList = [];
     public $editItemId = null;
 
@@ -75,6 +33,7 @@ class StokKeluarDetailComponent extends Component
         return [
             'produk_id' => 'required|exists:produk,id',
             'jumlah' => 'required|numeric|min:1',
+            'harga_beli' => 'required|numeric|min:0',
             'harga_jual' => 'required|numeric|min:0',
         ];
     }
@@ -89,10 +48,9 @@ class StokKeluarDetailComponent extends Component
 
             $item->update($data);
 
-            // Update stok produk (kembalikan stok lama, kurangi stok baru)
             $produk = Produk::find($data['produk_id']);
-            $produk->stok += $oldJumlah;       // balikin dulu
-            $produk->stok -= $data['jumlah'];  // kurangi stok baru
+            $produk->stok += $oldJumlah;
+            $produk->stok -= $data['jumlah'];
             $produk->save();
 
             $this->editItemId = null;
@@ -101,10 +59,10 @@ class StokKeluarDetailComponent extends Component
                 'stok_keluar_id' => $this->stokKeluarId,
                 'produk_id' => $data['produk_id'],
                 'jumlah' => $data['jumlah'],
+                'harga_beli' => $data['harga_beli'],
                 'harga_jual' => $data['harga_jual'],
             ]);
 
-            // Kurangi stok dari produk
             $produk = Produk::find($data['produk_id']);
             $produk->stok -= $data['jumlah'];
             $produk->save();
@@ -121,6 +79,7 @@ class StokKeluarDetailComponent extends Component
         $this->editItemId = $item->id;
         $this->produk_id = $item->produk_id;
         $this->jumlah = $item->jumlah;
+        $this->harga_beli = $item->harga_beli;
         $this->harga_jual = $item->harga_jual;
     }
 
@@ -151,14 +110,14 @@ class StokKeluarDetailComponent extends Component
     {
         $this->produk_id = null;
         $this->jumlah = null;
+        $this->harga_beli = null;
         $this->harga_jual = null;
     }
 
     public function render()
     {
-        return view('livewire.stok-keluar-detail-component', [
+        return view('livewire.stok-keluar-item-component', [
             'items' => $this->items,
         ]);
     }
 }
-
