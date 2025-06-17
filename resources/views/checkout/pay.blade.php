@@ -36,14 +36,14 @@
             },
             onPending: function (result) {
                 console.log('Pending:', result);
-                window.location.href = "{{ route('midtrans.finish') }}" +
+                window.location.href = "{{ route('midtrans.unfinish') }}" +
                     "?order_id=" + result.order_id +
                     "&status_code=" + result.status_code +
                     "&transaction_status=" + result.transaction_status;
             },
             onError: function (result) {
                 console.log('Error:', result);
-                window.location.href = "{{ route('midtrans.finish') }}" +
+                window.location.href = "{{ route('midtrans.error') }}" +
                     "?order_id=" + result.order_id +
                     "&status_code=" + result.status_code +
                     "&transaction_status=" + result.transaction_status;

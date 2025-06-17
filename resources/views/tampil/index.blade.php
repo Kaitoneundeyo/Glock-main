@@ -109,17 +109,40 @@
             @livewire('katalog-component')
         </div>
     </section>
-    <script>
-        window.addEventListener('cart-toast', event => {
-            Swal.fire({
-                toast: true,
-                position: 'bottom-end',
-                icon: event.detail.type,
-                title: event.detail.message,
-                showConfirmButton: false,
-                timer: 7000,
-                timerProgressBar: true,
+    @push('script')
+        <script>
+            Livewire.on('cart-toast', ({ type, message }) => {
+                // Kamu bisa pakai toastr, SweetAlert, atau alert biasa
+                if (type === 'success') {
+                    toastr.success(message);
+                } else if (type === 'error') {
+                    toastr.error(message);
+                } else if (type === 'warning') {
+                    toastr.warning(message);
+                }
             });
-        });
-    </script>
+
+            Livewire.on('refresh-page', () => {
+                // Contoh: muat ulang badge keranjang jika pakai komponen terpisah
+                Livewire.dispatch('update-cart-badge');
+            });
+        </script>
+        <script>
+            Livewire.on('cart-toast', ({ type, message }) => {
+                // Kamu bisa pakai toastr, SweetAlert, atau alert biasa
+                if (type === 'success') {
+                    toastr.success(message);
+                } else if (type === 'error') {
+                    toastr.error(message);
+                } else if (type === 'warning') {
+                    toastr.warning(message);
+                }
+            });
+
+            Livewire.on('refresh-page', () => {
+                // Contoh: muat ulang badge keranjang jika pakai komponen terpisah
+                Livewire.dispatch('update-cart-badge');
+            });
+        </script>
+    @endpush
 @endsection

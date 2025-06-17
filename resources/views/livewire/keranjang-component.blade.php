@@ -137,8 +137,8 @@
                 <div class="text-sm text-blue-800">
                     <div class="font-semibold mb-2">ℹ️ Informasi Reservasi:</div>
                     <ul class="space-y-1 text-xs">
-                        <li>• Produk di keranjang direservasi selama 60 menit</li>
-                        <li>• Saat checkout, reservasi akan dikunci selama 30 menit untuk pembayaran</li>
+                        <li>• Produk di keranjang direservasi selama 40 menit</li>
+                        <li>• Saat checkout, reservasi akan dikunci selama 20 menit untuk pembayaran</li>
                         <li>• Jika tidak dibayar dalam waktu tersebut, reservasi akan dibatalkan otomatis</li>
                     </ul>
                 </div>

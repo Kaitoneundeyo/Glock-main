@@ -4,16 +4,17 @@
             {{-- Form Tambah/Edit --}}
             <form wire:submit.prevent="{{ $this->formAction }}" class="card-body">
                 <div class="mb-3">
-                    <label for="no_invoice">No Invoice</label>
-                    <input type="text" id="no_invoice" class="form-control" wire:model="no_invoice"
-                        placeholder="Isi Invoice disini.....">
+                    <label for="no_keluar">ID Keluar</label>
+                    <input type="text" id="no_keluar" class="form-control" wire:model="no_keluar"
+                        placeholder="Isi ID Keluar disini.....">
                 </div>
 
                 <div class="mb-4">
-                    <label for="tanggalMasuk" class="form-label">Tanggal & Waktu Masuk</label>
-                    <input type="datetime-local" id="tanggalMasuk" wire:model.defer="tanggal_masuk" class="form-control">
-                </div>                
-                
+                    <label for="tanggal_keluar" class="form-label">Tanggal & Waktu Keluar</label>
+                    <input type="datetime-local" id="tanggal_keluar" wire:model.defer="tanggal_keluar"
+                        class="form-control">
+                </div>
+
                 <div class="mb-3">
                     <label for="supplier_id">Supplier</label>
                     <select id="supplier_id" class="form-control" wire:model="supplier_id">

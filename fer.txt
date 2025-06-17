@@ -1,14 +1,10 @@
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Midtrans\Snap;
-use Midtrans\Config;
 
-process
-confirmation
-pay
-finish
-unfinish
-error
-success
-failure
-pending
+Schema::create('stok_masuk_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('stok_masuk_id')->constrained('stok_masuks')->onDelete('cascade');
+            $table->foreignId('produk_id')->constrained('produk')->onDelete('cascade');
+            $table->integer('jumlah');
+            $table->decimal('harga_beli', 12, 2);
+            $table->date('expired_at')->nullable();
+            $table->timestamps();
+        });

@@ -8,13 +8,10 @@ use App\Models\Produk;
 use App\Models\Cart_item;
 use App\Models\GambarProduk;
 use App\Models\StockReservation;
-use Livewire\InteractsWithBrowserEvents;
-use Livewire\Attributes\On;
 
 
 class KatalogComponent extends Component
 {
-    use InteractsWithBrowserEvents;
     public $produks;
     public $gambarProduk;
     public $showModal = false;
@@ -89,38 +86,26 @@ class KatalogComponent extends Component
     {
         $user = Auth::user();
         if (!$user) {
-            $this->dispatchBrowserEvent('cart-toast', [
-                'type' => 'error',
-                'message' => 'Silakan login terlebih dahulu.'
-            ]);
+            // Silakan login terlebih dahulu
             return;
         }
 
         if (!$this->selectedProduk) {
-            $this->dispatchBrowserEvent('cart-toast', [
-                'type' => 'error',
-                'message' => 'Produk belum dipilih.'
-            ]);
+            // Produk belum dipilih
             return;
         }
 
         $produk = $this->selectedProduk;
 
         if ($this->quantity <= 0) {
-            $this->dispatchBrowserEvent('cart-toast', [
-                'type' => 'error',
-                'message' => 'Jumlah harus lebih dari 0.'
-            ]);
+            // Jumlah harus lebih dari 0
             return;
         }
 
         $availableStock = $this->getAvailableStock($produk->id);
 
         if ($this->quantity > $availableStock) {
-            $this->dispatchBrowserEvent('cart-toast', [
-                'type' => 'error',
-                'message' => "Stok tidak mencukupi. Tersedia: {$availableStock} item."
-            ]);
+            // Stok tidak mencukupi
             return;
         }
 
@@ -132,10 +117,7 @@ class KatalogComponent extends Component
         );
 
         if (!$reservation) {
-            $this->dispatchBrowserEvent('cart-toast', [
-                'type' => 'error',
-                'message' => 'Gagal mereservasi stok. Silakan coba lagi.'
-            ]);
+            // Gagal mereservasi stok
             return;
         }
 
@@ -155,12 +137,8 @@ class KatalogComponent extends Component
 
         $this->reset(['showModal', 'selectedProduk', 'quantity', 'availableStock']);
         $this->loadProduk();
-
-        $this->dispatchBrowserEvent('cart-toast', [
-            'type' => 'success',
-            'message' => 'Produk berhasil ditambahkan ke keranjang!'
-        ]);
     }
+
 
     /**
      * Close modal

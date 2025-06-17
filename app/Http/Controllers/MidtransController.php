@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Order;
 use App\Models\StockReservation;
 use Midtrans\Snap;
@@ -94,7 +95,7 @@ class MidtransController extends Controller
             // Update order with snap token
             $order->update([
                 'snap_token' => $snapToken,
-                'status' => 'awaiting_payment'
+                'status' => 'awaiting_payment',
             ]);
 
             return view('checkout.pay', compact('order', 'snapToken'));
@@ -146,6 +147,32 @@ class MidtransController extends Controller
         }
     }
 
+    public function callback(Request $request)
+    {
+        Log::info('Midtrans callback:', $request->all());
+
+        $orderNumber = $request->input('order_id');
+        $transactionStatus = $request->input('transaction_status');
+        $fraudStatus = $request->input('fraud_status');
+
+        $order = Order::where('order_number', $orderNumber)->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        if ($transactionStatus == 'settlement' && $fraudStatus == 'accept') {
+            $order->status = 'paid';
+        } elseif ($transactionStatus == 'pending') {
+            $order->status = 'pending_payment';
+        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+            $order->status = 'failed';
+        }
+
+        $order->save();
+
+        return response()->json(['message' => 'Notification received'], 200);
+    }
     /**
      * Handle unfinished payment
      */

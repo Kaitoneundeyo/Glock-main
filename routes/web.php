@@ -16,6 +16,7 @@ use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\MidtransWebhookController;
 use App\Http\Controllers\StokmasukController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\StokkeluarController;
 use App\Http\Controllers\TampilanController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UtamaController;
@@ -114,4 +115,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/midtrans/finish', [MidtransController::class, 'finish'])->name('midtrans.finish');
     Route::get('/midtrans/unfinish', [MidtransController::class, 'unfinish'])->name('midtrans.unfinish');
     Route::get('/midtrans/error', [MidtransController::class, 'error'])->name('midtrans.error');
+
+        Route::get('/stk', [StokKeluarController::class, 'index'])->name('stokkeluar.index');
 });

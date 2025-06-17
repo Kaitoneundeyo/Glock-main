@@ -102,7 +102,7 @@ class ProdukComponent extends Component
         $this->updateMode = false;
     }
 
-    public function render()
+   public function render()
     {
         $dataproduk = Produk::query()
             ->when($this->filterKodeProduk, fn($q) => $q->where('kode_produk', 'like', '%' . $this->filterKodeProduk . '%'))

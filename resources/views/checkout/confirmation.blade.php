@@ -69,7 +69,7 @@
                                 <div class="flex-1">
                                     <div class="font-semibold text-gray-800 mb-1">{{ $item->produk->nama_produk }}</div>
                                     <div class="text-sm text-gray-500 mb-2">
-                                        Kategori: {{ $item->produk->kategori->nama_kategori ?? 'Tidak ada kategori' }}
+                                        Kategori: {{ $item->produk->kategori->name ?? 'Tidak ada kategori' }}
                                     </div>
 
                                     <div class="flex items-center justify-between">

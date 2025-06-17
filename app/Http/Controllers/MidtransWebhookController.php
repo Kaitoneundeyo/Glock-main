@@ -27,72 +27,76 @@ class MidtransWebhookController extends Controller
     public function notification(Request $request)
     {
         try {
-            // Create Midtrans notification instance
             $notification = new Notification();
 
-            // Get transaction details
             $orderNumber = $notification->order_id;
             $transactionStatus = $notification->transaction_status;
             $fraudStatus = $notification->fraud_status ?? null;
             $paymentType = $notification->payment_type;
             $grossAmount = $notification->gross_amount;
+            $statusCode = $notification->status_code;
+            $signatureKey = $notification->signature_key;
 
-            // Log webhook untuk debugging
+            // Validasi Signature Key
+            $expectedSignature = hash('sha512', $orderNumber . $statusCode . $grossAmount . config('midtrans.server_key'));
+
+            if ($signatureKey !== $expectedSignature) {
+                Log::warning('Invalid signature key in webhook', [
+                    'order_id' => $orderNumber,
+                    'provided_signature' => $signatureKey,
+                    'expected_signature' => $expectedSignature
+                ]);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid signature'
+                ], 403);
+            }
+
             Log::info('Midtrans Webhook Received', [
                 'order_id' => $orderNumber,
                 'transaction_status' => $transactionStatus,
                 'fraud_status' => $fraudStatus,
                 'payment_type' => $paymentType,
                 'gross_amount' => $grossAmount,
-                'signature_key' => $notification->signature_key ?? null,
             ]);
 
-            // Find order
             $order = Order::where('order_number', $orderNumber)->first();
 
             if (!$order) {
-                Log::error('Order not found for webhook', ['order_number' => $orderNumber]);
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Order not found'
-                ], 404);
+                Log::warning("Order not found for webhook: $orderNumber");
+                // Tetap return 200 agar Midtrans tidak retry terus
+                return response()->json(['message' => 'Order not found (ignored)'], 200);
             }
 
-            // Verify gross amount
-            if ((int) $grossAmount != (int) $order->total_amount) {
-                Log::error('Amount mismatch in webhook', [
-                    'order_number' => $orderNumber,
-                    'webhook_amount' => $grossAmount,
-                    'order_amount' => $order->total_amount
+            // Jangan hentikan proses hanya karena mismatch (log saja)
+            if ((int)$grossAmount !== (int)$order->total_amount) {
+                Log::warning("Gross amount mismatch", [
+                    'order_id' => $orderNumber,
+                    'gross_from_midtrans' => $grossAmount,
+                    'total_order' => $order->total_amount
                 ]);
-
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Amount mismatch'
-                ], 400);
             }
 
-            // Process payment based on status
             $this->processPaymentStatus($order, $transactionStatus, $fraudStatus, $paymentType);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Notification processed successfully'
-            ]);
+                'message' => 'Notification processed'
+            ], 200);
         } catch (\Exception $e) {
-            Log::error('Midtrans webhook error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
+            Log::error('Webhook processing failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
+            // Tetap return 200 supaya Midtrans tidak spam webhook terus-menerus
             return response()->json([
                 'status' => 'error',
-                'message' => 'Internal server error'
-            ], 500);
+                'message' => 'Handled internally'
+            ], 200);
         }
     }
-
     /**
      * Process payment status from webhook
      */

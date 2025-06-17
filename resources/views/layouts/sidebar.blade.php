@@ -80,6 +80,11 @@
                     <i class="fas fa-image"></i><span>GAMBAR PRODUK</span>
                 </a>
             </li>
+            <li class="{{ request()->routeIs('stokkeluar.index') ? 'active' : '' }}">
+                <a href="{{ route('stokkeluar.index') }}" class="nav-link">
+                    <i class="fas fa-undo"></i><span>STOK KELUAR</span>
+                </a>
+            </li>
             <li>
                 <a href="{{ route('logout') }}" class="nav-link">
                     <i class="fas fa-sign-out-alt"></i><span>LOGOUT</span>
