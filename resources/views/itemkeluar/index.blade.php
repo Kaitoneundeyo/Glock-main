@@ -7,7 +7,7 @@
         </div>
 
         <div>
-            @livewire('stok-keluar-item-component', ['id' => $id])
+            @livewire('stok-keluar-item-component', ['id' => $stokKeluar->id])
         </div>
     </section>
 @endsection

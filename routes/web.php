@@ -118,8 +118,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/midtrans/error', [MidtransController::class, 'error'])->name('midtrans.error');
 
     Route::get('/stk', [StokKeluarController::class, 'index'])->name('stokkeluar.index');
-    // Route::get('/stki', [StokKeluarItemController::class, 'index'])->name('stokkeluaritem.index');
-    Route::get('/stki/{id}', function ($id) {
-        return view('itemkeluar.index', ['id' => $id]);
-    })->name('itemkeluar.index');
+    Route::get('/stki/{id}', [StokKeluarItemController::class, 'index'])->name('itemkeluar.index');
 });

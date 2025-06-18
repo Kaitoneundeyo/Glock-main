@@ -57,8 +57,7 @@
                             </td>
                             <td>{{ ucfirst($item->jenis) ?? '-' }}</td>
                             <td class="px-4 py-2 border">
-                                <a href="{{ route('itemkeluar.index', ['id' => $item->id]) }}"
-                                    class="btn btn-info btn-sm">Detail</a>
+                                <a href="{{ route('itemkeluar.index', ['id' => $item->id]) }}" class="btn btn-info btn-sm">Detail</a>
                                 <button class="btn btn-warning btn-sm" wire:click="editItem({{ $item->id }})">Edit</button>
                                 <button class="btn btn-danger btn-sm" wire:click="hapusItem({{ $item->id }})">Hapus</button>
                             </td>
