@@ -17,7 +17,6 @@ class StokKeluar extends Model
 
     public function items()
     {
-        return $this->hasMany(StokKeluarItem::class);
+        return $this->hasMany(StokKeluarItem::class, 'stok_keluars_id');
     }
-
 }

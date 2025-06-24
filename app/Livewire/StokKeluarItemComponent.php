@@ -3,28 +3,132 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Models\Produk;
+use App\Models\StokKeluar;
 use App\Models\StokKeluarItem;
-use App\Models\StokKeluar; // Add this import
+use Livewire\WithPagination;
 
 class StokKeluarItemComponent extends Component
 {
-    public $id;
+    use WithPagination;
+
+    public $stokKeluarId;
+    public $stokKeluar;
+    public $items = [];
+
+    public $produk_id, $jumlah, $harga_jual, $harga_beli;
+    public $produkList = [];
+    public $editItemId = null;
 
     public function mount($id)
     {
-        $this->id = $id;
+        $this->stokKeluarId = $id;
+        $this->stokKeluar = StokKeluar::findOrFail($id);
+        $this->produkList = Produk::all();
+        $this->loadItems();
+    }
+
+    public function updatedProdukId($value)
+    {
+        $produk = Produk::find($value);
+        $this->harga_beli = $produk ? $produk->harga_beli : null;
+    }
+
+    public function rules()
+    {
+        return [
+            'produk_id' => 'required|exists:produk,id',
+            'jumlah' => 'required|numeric|min:1',
+            'harga_beli' => 'required|numeric|min:0',
+            'harga_jual' => 'required|numeric|min:0',
+        ];
+    }
+
+    public function store()
+    {
+        $data = $this->validate();
+
+        if ($this->editItemId) {
+            $item = StokKeluarItem::findOrFail($this->editItemId);
+            $oldJumlah = $item->jumlah;
+
+            $item->update([
+                'produk_id' => $data['produk_id'],
+                'jumlah' => $data['jumlah'],
+                'harga_beli' => $data['harga_beli'],
+                'harga_jual' => $data['harga_jual'],
+            ]);
+
+            $produk = Produk::find($data['produk_id']);
+            $produk->stok += $oldJumlah;
+            $produk->stok -= $data['jumlah'];
+            $produk->save();
+
+            $this->editItemId = null;
+        } else {
+            StokKeluarItem::create([
+                'stok_keluar_id' => $this->stokKeluarId,
+                'produk_id' => $data['produk_id'],
+                'jumlah' => $data['jumlah'],
+                'harga_beli' => $data['harga_beli'],
+                'harga_jual' => $data['harga_jual'],
+            ]);
+
+            $produk = Produk::find($data['produk_id']);
+            $produk->stok -= $data['jumlah'];
+            $produk->save();
+        }
+
+        $this->resetForm();
+        $this->loadItems();
+        session()->flash('message', 'Item berhasil disimpan.');
+    }
+
+    public function editItem($id)
+    {
+        $item = StokKeluarItem::findOrFail($id);
+        $this->editItemId = $item->id;
+        $this->produk_id = $item->produk_id;
+        $this->jumlah = $item->jumlah;
+        $this->harga_beli = $item->harga_beli;
+        $this->harga_jual = $item->harga_jual;
+    }
+
+    public function delete($id)
+    {
+        $item = StokKeluarItem::findOrFail($id);
+        $produk = Produk::find($item->produk_id);
+
+        if ($produk) {
+            $produk->stok += $item->jumlah;
+            $produk->save();
+        }
+
+        $item->delete();
+        $this->loadItems();
+        session()->flash('message', 'Item berhasil dihapus.');
+    }
+
+    public function loadItems()
+    {
+        $this->items = StokKeluarItem::with('produk')
+            ->where('stok_keluar_id', $this->stokKeluarId)
+            ->get();
+    }
+
+    public function resetForm()
+    {
+        $this->produk_id = null;
+        $this->jumlah = null;
+        $this->harga_beli = null;
+        $this->harga_jual = null;
+        $this->editItemId = null;
     }
 
     public function render()
     {
-        $items = StokKeluarItem::where('stok_keluars_id', $this->id)->get();
-
-        // Add this line to get the StokKeluar data
-        $stokKeluar = StokKeluar::findOrFail($this->id);
-
         return view('livewire.stok-keluar-item-component', [
-            'items' => $items,
-            'stokKeluar' => $stokKeluar, // Pass stokKeluar to the view
+            'items' => $this->items,
         ]);
     }
 }

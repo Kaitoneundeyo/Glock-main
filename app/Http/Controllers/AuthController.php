@@ -68,6 +68,7 @@ class AuthController extends Controller
             [
                 'name' => $googleUser->getName(),
                 'password' => bcrypt(str()->random(24)), // password acak
+                'role' => 'pelanggan', // Atur role sesuai kebutuhan
             ]
         );
 

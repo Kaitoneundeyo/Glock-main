@@ -8,47 +8,41 @@ use App\Models\Produk;
 use App\Models\Cart_item;
 use App\Models\GambarProduk;
 use App\Models\StockReservation;
-
+use Livewire\WithPagination;
 
 class KatalogComponent extends Component
 {
-    public $produks;
-    public $gambarProduk;
-    public $showModal = false;
+    use WithPagination;
+
+    public $search = '';
     public $selectedProduk;
     public $quantity = 1;
     public $availableStock = 0;
+    public $showModal = false;
 
+    protected $paginationTheme = 'tailwind';
+    public $sortDirection = 'asc'; // default A-Z
 
-    public function mount()
+    public function toggleSortDirection()
     {
-        $this->loadProduk();
-        $this->gambarProduk = GambarProduk::all();
+        $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
     }
 
-    public function loadProduk()
+    public function searchProduk()
     {
-        // Clean expired reservations first
-        StockReservation::cleanExpiredReservations();
-
-        $this->produks = Produk::with([
-            'kategori',
-            'hargaTerbaru',
-            'gambarUtama',
-        ])->get();
+        $this->resetPage();
     }
 
-    /**
-     * Get real-time available stock for a product
-     */
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function getAvailableStock($produk_id)
     {
         return StockReservation::getAvailableStock($produk_id);
     }
 
-    /**
-     * Tampilkan modal untuk memilih jumlah produk
-     */
     public function toCart($produk_id)
     {
         $this->selectedProduk = Produk::with('hargaTerbaru')->find($produk_id);
@@ -69,9 +63,6 @@ class KatalogComponent extends Component
         $this->showModal = true;
     }
 
-    /**
-     * Update available stock saat quantity berubah di modal
-     */
     public function updatedQuantity()
     {
         if ($this->selectedProduk) {
@@ -79,35 +70,15 @@ class KatalogComponent extends Component
         }
     }
 
-    /**
-     * Tambahkan produk ke keranjang dengan soft reservation
-     */
     public function confirmAddToCart()
     {
         $user = Auth::user();
-        if (!$user) {
-            // Silakan login terlebih dahulu
-            return;
-        }
-
-        if (!$this->selectedProduk) {
-            // Produk belum dipilih
-            return;
-        }
+        if (!$user || !$this->selectedProduk || $this->quantity <= 0) return;
 
         $produk = $this->selectedProduk;
-
-        if ($this->quantity <= 0) {
-            // Jumlah harus lebih dari 0
-            return;
-        }
-
         $availableStock = $this->getAvailableStock($produk->id);
 
-        if ($this->quantity > $availableStock) {
-            // Stok tidak mencukupi
-            return;
-        }
+        if ($this->quantity > $availableStock) return;
 
         $reservation = StockReservation::createSoftReservation(
             $user->id,
@@ -116,10 +87,7 @@ class KatalogComponent extends Component
             session()->getId()
         );
 
-        if (!$reservation) {
-            // Gagal mereservasi stok
-            return;
-        }
+        if (!$reservation) return;
 
         $cartItem = Cart_item::where('user_id', $user->id)
             ->where('produk_id', $produk->id)
@@ -136,13 +104,9 @@ class KatalogComponent extends Component
         }
 
         $this->reset(['showModal', 'selectedProduk', 'quantity', 'availableStock']);
-        $this->loadProduk();
+        flash()->success('Produk berhasil masuk keranjang!');
     }
 
-
-    /**
-     * Close modal
-     */
     public function closeModal()
     {
         $this->reset(['showModal', 'selectedProduk', 'quantity', 'availableStock']);
@@ -150,6 +114,13 @@ class KatalogComponent extends Component
 
     public function render()
     {
-        return view('livewire.katalog-component');
+        $produks = Produk::with(['kategori', 'hargaTerbaru', 'gambarUtama'])
+            ->where('nama_produk', 'like', '%' . $this->search . '%')
+            ->orderBy('nama_produk', $this->sortDirection) // ← pakai arah sortir dari properti
+            ->paginate(20);
+
+        return view('livewire.katalog-component', [
+            'produks' => $produks,
+        ]);
     }
 }

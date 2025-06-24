@@ -22,11 +22,10 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'previous_keys' => [
-        ...array_filter(
-            explode(',', env('APP_PREVIOUS_KEYS', ''))
-        ),
-    ],
+    // Optional: only if using Laravel >= 10.37
+    'previous_keys' => array_filter(
+        explode(',', env('APP_PREVIOUS_KEYS', ''))
+    ),
 
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
@@ -63,11 +62,7 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Package Service Providers...
-        |--------------------------------------------------------------------------
-        */
+        // Tambahan Provider untuk Shopping Cart
         Darryldecode\Cart\CartServiceProvider::class,
 
         /*
@@ -80,6 +75,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        Maatwebsite\Excel\ExcelServiceProvider::class,
 
     ],
 
@@ -122,8 +118,9 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
-        // Tambahan untuk Shopping Cart
+        // Tambahan Alias untuk Shopping Cart
         'Cart' => Darryldecode\Cart\Facades\CartFacade::class,
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
 
     ],
 

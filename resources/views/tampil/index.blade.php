@@ -109,40 +109,40 @@
             @livewire('katalog-component')
         </div>
     </section>
-    @push('script')
-        <script>
-            Livewire.on('cart-toast', ({ type, message }) => {
-                // Kamu bisa pakai toastr, SweetAlert, atau alert biasa
-                if (type === 'success') {
-                    toastr.success(message);
-                } else if (type === 'error') {
-                    toastr.error(message);
-                } else if (type === 'warning') {
-                    toastr.warning(message);
-                }
-            });
-
-            Livewire.on('refresh-page', () => {
-                // Contoh: muat ulang badge keranjang jika pakai komponen terpisah
-                Livewire.dispatch('update-cart-badge');
-            });
-        </script>
-        <script>
-            Livewire.on('cart-toast', ({ type, message }) => {
-                // Kamu bisa pakai toastr, SweetAlert, atau alert biasa
-                if (type === 'success') {
-                    toastr.success(message);
-                } else if (type === 'error') {
-                    toastr.error(message);
-                } else if (type === 'warning') {
-                    toastr.warning(message);
-                }
-            });
-
-            Livewire.on('refresh-page', () => {
-                // Contoh: muat ulang badge keranjang jika pakai komponen terpisah
-                Livewire.dispatch('update-cart-badge');
-            });
-        </script>
-    @endpush
 @endsection
+@push('script')
+    <script>
+        Livewire.on('cart-toast', ({ type, message }) => {
+            // Kamu bisa pakai toastr, SweetAlert, atau alert biasa
+            if (type === 'success') {
+                toastr.success(message);
+            } else if (type === 'error') {
+                toastr.error(message);
+            } else if (type === 'warning') {
+                toastr.warning(message);
+            }
+        });
+
+        Livewire.on('refresh-page', () => {
+            // Contoh: muat ulang badge keranjang jika pakai komponen terpisah
+            Livewire.dispatch('update-cart-badge');
+        });
+    </script>
+    <script>
+        Livewire.on('cart-toast', ({ type, message }) => {
+            // Kamu bisa pakai toastr, SweetAlert, atau alert biasa
+            if (type === 'success') {
+                toastr.success(message);
+            } else if (type === 'error') {
+                toastr.error(message);
+            } else if (type === 'warning') {
+                toastr.warning(message);
+            }
+        });
+
+        Livewire.on('refresh-page', () => {
+            // Contoh: muat ulang badge keranjang jika pakai komponen terpisah
+            Livewire.dispatch('update-cart-badge');
+        });
+    </script>
+@endpush

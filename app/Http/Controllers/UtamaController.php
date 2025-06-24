@@ -34,12 +34,14 @@ class UtamaController extends Controller
             'name'     => 'required',
             'email'    => 'required|email|unique:users',
             'password' => 'required|min:8',
+            'role'     => 'required|in:kepala_gudang,admin_gudang,kasir',
         ]);
 
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'role'     => $request->role,
         ]);
 
         return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan!');
@@ -64,11 +66,13 @@ class UtamaController extends Controller
         $request->validate([
             'name'  => 'required',
             'email' => 'required|email|unique:users,email,' . $id,
+            'role'  => 'required|in:kepala_gudang,admin_gudang,kasir',
         ]);
 
         $user->update([
             'name'  => $request->name,
             'email' => $request->email,
+            'role'  => $request->role,
         ]);
 
         return redirect()->route('user.index')->with('success', 'User berhasil diupdate!');
