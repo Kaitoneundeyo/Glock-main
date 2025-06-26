@@ -33,7 +33,7 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'index'])->name('login');
     Route::get('/login-google', [AuthController::class, 'indexGoogle'])->name('login-google');
     Route::post('/login-proses', [AuthController::class, 'login_proses'])->name('login-proses');
-    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
 
     // Google OAuth
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('login.google');
@@ -59,6 +59,7 @@ Route::get('/checkout/error', [CheckoutController::class, 'error'])->name('check
 // AUTHENTICATED ROUTES
 // ========================================
 Route::middleware(['auth'])->group(function () {
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     // Halaman utama
     Route::get('/home', [HomeController::class, 'index'])->name('home.index');
     // Dashboard
@@ -74,7 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/user/{id}/destroy', [UtamaController::class, 'destroy'])->name('user.destroy');
 
         // Gambar & Harga
-        Route::get('/gb', [GambarProdukController::class, 'index'])->name('gambar.index');
+
         Route::get('/hg', [HargaController::class, 'index'])->name('harga.index');
 
         Route::get('/sp', [SupplierController::class, 'index'])->name('supplier.index');
@@ -90,6 +91,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/kt/{id}/update', [CategoriesController::class, 'update'])->name('kategori.update');
         Route::delete('/kt/{id}/destroy', [CategoriesController::class, 'destroy'])->name('kategori.destroy');
         // Produk & Inventori
+        Route::get('/gb', [GambarProdukController::class, 'index'])->name('gambar.index');
         Route::get('/pd', [ProdukController::class, 'index'])->name('produk.index');
         Route::get('/st', [StokmasukController::class, 'index'])->name('stokmasuk.index');
         Route::get('/stokmasuk/export/today', [StokmasukController::class, 'exportToday'])->name('stokmasuk.export.today');

@@ -16,7 +16,7 @@ class StokKeluarItemComponent extends Component
     public $stokKeluar;
     public $items = [];
 
-    public $produk_id, $jumlah, $harga_jual, $harga_beli;
+    public $produk_id, $jumlah, $harga_jual;
     public $produkList = [];
     public $editItemId = null;
 
@@ -28,18 +28,11 @@ class StokKeluarItemComponent extends Component
         $this->loadItems();
     }
 
-    public function updatedProdukId($value)
-    {
-        $produk = Produk::find($value);
-        $this->harga_beli = $produk ? $produk->harga_beli : null;
-    }
-
     public function rules()
     {
         return [
             'produk_id' => 'required|exists:produk,id',
             'jumlah' => 'required|numeric|min:1',
-            'harga_beli' => 'required|numeric|min:0',
             'harga_jual' => 'required|numeric|min:0',
         ];
     }
@@ -52,16 +45,12 @@ class StokKeluarItemComponent extends Component
             $item = StokKeluarItem::findOrFail($this->editItemId);
             $oldJumlah = $item->jumlah;
 
-            $item->update([
-                'produk_id' => $data['produk_id'],
-                'jumlah' => $data['jumlah'],
-                'harga_beli' => $data['harga_beli'],
-                'harga_jual' => $data['harga_jual'],
-            ]);
+            $item->update($data);
 
+            // Update stok produk (kembalikan stok lama, kurangi stok baru)
             $produk = Produk::find($data['produk_id']);
-            $produk->stok += $oldJumlah;
-            $produk->stok -= $data['jumlah'];
+            $produk->stok += $oldJumlah;       // balikin dulu
+            $produk->stok -= $data['jumlah'];  // kurangi stok baru
             $produk->save();
 
             $this->editItemId = null;
@@ -70,10 +59,10 @@ class StokKeluarItemComponent extends Component
                 'stok_keluar_id' => $this->stokKeluarId,
                 'produk_id' => $data['produk_id'],
                 'jumlah' => $data['jumlah'],
-                'harga_beli' => $data['harga_beli'],
                 'harga_jual' => $data['harga_jual'],
             ]);
 
+            // Kurangi stok dari produk
             $produk = Produk::find($data['produk_id']);
             $produk->stok -= $data['jumlah'];
             $produk->save();
@@ -90,7 +79,6 @@ class StokKeluarItemComponent extends Component
         $this->editItemId = $item->id;
         $this->produk_id = $item->produk_id;
         $this->jumlah = $item->jumlah;
-        $this->harga_beli = $item->harga_beli;
         $this->harga_jual = $item->harga_jual;
     }
 
@@ -105,6 +93,7 @@ class StokKeluarItemComponent extends Component
         }
 
         $item->delete();
+
         $this->loadItems();
         session()->flash('message', 'Item berhasil dihapus.');
     }
@@ -120,9 +109,7 @@ class StokKeluarItemComponent extends Component
     {
         $this->produk_id = null;
         $this->jumlah = null;
-        $this->harga_beli = null;
         $this->harga_jual = null;
-        $this->editItemId = null;
     }
 
     public function render()

@@ -28,20 +28,37 @@ class AuthController extends Controller
     public function login_proses(Request $request)
     {
         $request->validate([
-
-            'email' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $data = [
+        $credentials = [
             'email' => $request->email,
             'password' => $request->password,
         ];
-        if (Auth::attempt($data)) {
-            $request->session()->regenerate(); // ⬅️ Sangat penting!
-            return redirect()->route('home.index');
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate(); // Keamanan sesi
+            $user = Auth::user();
+
+            // Jika role cocok (kepala_gudang, admin_gudang, kasir, pelanggan), redirect ke home.index
+            if (in_array($user->role, ['kepala_gudang', 'admin_gudang', 'kasir', 'pelanggan'])) {
+                return redirect()->route('home.index');
+            }
+
+            // Jika role tidak dikenali
+            Auth::logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Role pengguna tidak diizinkan.',
+            ]);
         }
+
+        // Login gagal
+        return back()->withErrors([
+            'email' => 'Email atau password salah.',
+        ])->withInput();
     }
+
 
     /**
      * Store a newly created resource in storage.
