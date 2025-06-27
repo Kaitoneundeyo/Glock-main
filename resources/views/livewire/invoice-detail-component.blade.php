@@ -24,7 +24,7 @@
                 <div wire:ignore>
                     <select class="js-example-basic-single form-control">
                         <option value="">-- Pilih Produk --</option>
-                        @foreach ($produk as $pro)
+                        @foreach ($produkList as $pro)
                             <option value="{{ $pro->id }}">{{ $pro->nama_produk }}</option>
                         @endforeach
                     </select>

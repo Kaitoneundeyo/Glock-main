@@ -65,7 +65,7 @@ class StokKeluarItemComponent extends Component
             $this->editItemId = null;
         } else {
             StokKeluarItem::create([
-                'stok_keluar_id' => $this->stokKeluarId,
+                'stok_keluars_id' => $this->stokKeluarId,
                 'produk_id' => $data['produk_id'],
                 'jumlah' => $data['jumlah'],
                 'harga_jual' => $data['harga_jual'],
@@ -110,7 +110,7 @@ class StokKeluarItemComponent extends Component
     public function loadItems()
     {
         $this->items = StokKeluarItem::with('produk')
-            ->where('stok_keluar_id', $this->stokKeluarId)
+            ->where('stok_keluars_id', $this->stokKeluarId)
             ->get();
     }
 

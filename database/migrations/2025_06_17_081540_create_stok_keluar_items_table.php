@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->decimal('harga_beli', 12, 2);
             $table->decimal('harga_jual', 12, 2)->nullable();
+            $table->decimal('hpp', 15, 2);
             $table->timestamps();
         });
     }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->integer('quantity');
             $table->decimal('price', 15, 2); // Price at time of order
             $table->decimal('subtotal', 15, 2);
+            $table->decimal('hpp', 12, 2);
             $table->timestamps();
 
             // Indexes

@@ -8,10 +8,23 @@
 
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h4>Daftar User</h4>
-                <a href="{{ route('user.create') }}" class="btn btn-primary btn-lg">
-                    + Tambah User
-                </a>
+                <h4 class="mb-0">Daftar User</h4>
+                <div class="d-flex align-items-center">
+                    <form method="GET" action="{{ route('user.index') }}" class="form-inline mr-3">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" placeholder="Cari nama..."
+                                value="{{ request('search') }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <a href="{{ route('user.create') }}"
+                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
+                        + Tambah User
+                    </a>
+                </div>
             </div>
 
             <div class="card-body">
@@ -22,34 +35,41 @@
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th style="width: 160px;">Aksi</th>
+                            <th style="width: 100px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($user as $u)
                             <tr>
-                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ ($user->currentPage() - 1) * $user->perPage() + $loop->iteration }}</td>
                                 <td>{{ $u->name ?? 'N/A' }}</td>
                                 <td>{{ $u->email ?? 'N/A' }}</td>
                                 <td>{{ $u->role ?? 'N/A' }}</td>
-                                <td>
-                                    <a href="{{ route('user.edit', $u->id) }}" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-pen"></i> Edit
-                                    </a>
-
-                                    <button type="button" class="btn btn-danger btn-sm btn-hapus" data-id="{{ $u->id }}"
-                                        data-toggle="modal" data-target="#modal-hapus">
-                                        <i class="fas fa-trash-alt"></i> Hapus
-                                    </button>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center">
+                                        <a href="{{ route('user.edit', $u->id) }}" class="btn btn-sm btn-warning mx-1"
+                                            title="Edit">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger mx-1 btn-hapus"
+                                            data-id="{{ $u->id }}" data-toggle="modal" data-target="#modal-hapus" title="Hapus">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center text-muted">Data tidak tersedia</td>
+                                <td colspan="5" class="text-center text-muted">Data tidak tersedia</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
+
+                {{-- Pagination --}}
+                <div class="mt-3">
+                    {{ $user->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
     </section>
@@ -91,7 +111,7 @@
             deleteButtons.forEach(button => {
                 button.addEventListener('click', function () {
                     const id = this.getAttribute('data-id');
-                    form.action = `/user/${id}/destroy`; // Sesuaikan jika route destroy-nya berbeda
+                    form.action = `/user/${id}`;
                 });
             });
         });

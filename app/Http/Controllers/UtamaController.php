@@ -11,11 +11,21 @@ class UtamaController extends Controller
     /**
      * Tampilkan semua data user
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user = User::all();
+        $query = User::query();
+
+        // Filter berdasarkan nama jika ada input pencarian
+        if ($request->has('search') && $request->search != '') {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+
+        // Pagination (10 data per halaman)
+        $user = $query->paginate(10)->withQueryString();
+
         return view('user.index', compact('user'));
     }
+
 
     /**
      * Tampilkan form tambah user

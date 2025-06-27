@@ -10,21 +10,23 @@
 
             <!-- Form Input -->
             <form wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
+                {{-- Produk --}}
                 <div class="mb-3 row">
                     <label for="produk_id" class="col-sm-2 col-form-label text-black">Produk</label>
-                    <div class="col-sm-10">
-                        <div wire:ignore>
-                            <select class="js-example-basic-single form-control">
-                                <option value="">-- Pilih Produk --</option>
-                                @foreach ($produk as $pro)
-                                    <option value="{{ $pro->id }}">{{ $pro->nama_produk }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @error('produk_id') <span class="text-danger text-sm">{{ $message }}</span> @enderror
+                    <div class="col-sm-10" wire:ignore>
+                        <select wire:model="produk_id" class="js-example-basic-single form-control">
+                            <option value="">-- Pilih Produk --</option>
+                            @foreach ($produkList as $pro)
+                                <option value="{{ $pro->id }}">{{ $pro->nama_produk }}</option>
+                            @endforeach
+                        </select>
+                        @error('produk_id')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
                     </div>
                 </div>
 
+                {{-- Harga Jual --}}
                 <div class="mb-3 row">
                     <label for="harga_jual" class="col-sm-2 col-form-label text-black">Harga Jual</label>
                     <div class="col-sm-10">
@@ -34,6 +36,7 @@
                     </div>
                 </div>
 
+                {{-- Harga Promo --}}
                 <div class="mb-3 row">
                     <label for="harga_promo" class="col-sm-2 col-form-label text-black">Harga Promo</label>
                     <div class="col-sm-10">
@@ -43,6 +46,7 @@
                     </div>
                 </div>
 
+                {{-- Tanggal Mulai Promo --}}
                 <div class="mb-3 row">
                     <label for="tanggal_mulai_promo" class="col-sm-2 col-form-label text-black">Mulai Promo</label>
                     <div class="col-sm-10">
@@ -51,6 +55,7 @@
                     </div>
                 </div>
 
+                {{-- Tanggal Selesai Promo --}}
                 <div class="mb-4 row">
                     <label for="tanggal_selesai_promo" class="col-sm-2 col-form-label text-black">Akhir Promo</label>
                     <div class="col-sm-10">
@@ -59,12 +64,13 @@
                     </div>
                 </div>
 
+                {{-- Tombol --}}
                 <div class="text-end">
                     <button type="submit" class="btn btn-primary">
                         {{ $editMode ? 'Perbarui' : 'Simpan' }}
                     </button>
                     @if ($editMode)
-                        <button type="button" wire:click="cancelEdit" class="btn btn-secondary">Batal</button>
+                        <button type="button" wire:click="cancelEdit" class="btn btn-secondary ms-2">Batal</button>
                     @endif
                 </div>
             </form>

@@ -10,7 +10,7 @@ class StokKeluarItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'stok_keluar_id',
+        'stok_keluars_id',
         'produk_id',
         'jumlah',
         'harga_beli',
