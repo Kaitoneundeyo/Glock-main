@@ -1,5 +1,13 @@
 @extends('layouts.app')
 
+@push('styles')
+    <style>
+        input[type="file"] {
+            cursor: pointer;
+        }
+    </style>
+@endpush
+
 @section('content')
     <section class="section">
         <div class="section-header">
@@ -8,11 +16,10 @@
         <div>
             @livewire('gambar-component')
         </div>
-        @push('styles')
-            <style>
-                input[type="file"] {
-                    cursor: pointer;
-                }
-            </style>
-        @endpush
-@endsection
+</section> @endsection @push('scripts')
+    <script>
+        $(document).ready(function () {
+            $('.js-example-basic-single').select2();
+        });
+    </script>
+@endpush

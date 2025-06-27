@@ -1,4 +1,4 @@
-<div class="main-sidebar sidebar-style-2 overflow-y-auto">
+<div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         {{-- Branding --}}
         <div class="sidebar-brand">
@@ -22,24 +22,30 @@
                 </a>
             </li>
 
-            {{-- MENU KHUSUS KASIR --}}
+            {{-- KASIR --}}
             @if($role === 'kasir')
                 <li class="menu-header">KASIR</li>
-                <li class="{{ request()->routeIs('laporan.index') ? 'active' : '' }}">
-                    <a href="{{ route('laporan.index') }}" class="nav-link">
-                        <i class="fas fa-file-alt"></i>
-                        <span>LAPORAN</span>
-                    </a>
-                </li>
                 <li class="{{ request()->routeIs('order.index') ? 'active' : '' }}">
                     <a href="{{ route('order.index') }}" class="nav-link">
                         <i class="fas fa-clipboard-list"></i>
                         <span>ORDERAN MASUK</span>
                     </a>
                 </li>
+                <li class="{{ request()->routeIs('laporan.index') ? 'active' : '' }}">
+                    <a href="{{ route('laporan.index') }}" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>LAPORAN HARIAN</span>
+                    </a>
+                </li>
+                <li class="{{ request()->routeIs('laporanbulanan.index') ? 'active' : '' }}">
+                    <a href="{{ route('laporanbulanan.index') }}" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>LAPORAN BULANAN</span>
+                    </a>
+                </li>
             @endif
 
-            {{-- MENU UNTUK PELANGGAN --}}
+            {{-- PELANGGAN --}}
             @if($role === 'pelanggan')
                 <li class="menu-header">PELANGGAN</li>
                 <li class="{{ request()->routeIs('tampil.index') ? 'active' : '' }}">
@@ -49,17 +55,12 @@
                     </a>
                 </li>
                 <li class="{{ request()->routeIs('coba.index') ? 'active' : '' }}">
-                    <a href="{{ route('coba.index') }}" class="nav-link flex items-center gap-2">
-                        <div class="relative">
-                            <i class="fas fa-shopping-basket"></i>
-                            @if($cartCount > 0)
-                                <span
-                                    class="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-1 shadow">
-                                    {{ $cartCount }}
-                                </span>
-                            @endif
-                        </div>
+                    <a href="{{ route('coba.index') }}" class="nav-link">
+                        <i class="fas fa-shopping-basket"></i>
                         <span>KERANJANG</span>
+                        @if($cartCount > 0)
+                            <span class="badge badge-danger ml-2">{{ $cartCount }}</span>
+                        @endif
                     </a>
                 </li>
                 <li class="{{ request()->routeIs('checkout.transactions') ? 'active' : '' }}">
@@ -70,7 +71,7 @@
                 </li>
             @endif
 
-            {{-- MENU ADMIN GUDANG --}}
+            {{-- ADMIN GUDANG --}}
             @if($role === 'admin_gudang')
                 <li class="menu-header">GUDANG</li>
                 <li class="{{ request()->routeIs('kategori.index') ? 'active' : '' }}">
@@ -105,7 +106,7 @@
                 </li>
             @endif
 
-            {{-- MENU KEPALA GUDANG --}}
+            {{-- KEPALA GUDANG --}}
             @if($role === 'kepala_gudang')
                 <li class="menu-header">KEPALA GUDANG</li>
                 <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">

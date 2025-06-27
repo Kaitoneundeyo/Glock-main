@@ -24,13 +24,14 @@
             {{-- Produk --}}
             <div>
                 <label for="produk_id" class="block text-sm font-medium text-gray-700">Produk</label>
-                <select id="produk_id" wire:model="produk_id"
-                    class="mt-1 block w-full border border-gray-300 rounded px-2 py-1">
-                    <option value="">-- Pilih Produk --</option>
-                    @foreach ($produkList as $produk)
-                        <option value="{{ $produk->id }}">{{ $produk->nama_produk }}</option>
-                    @endforeach
-                </select>
+                <div wire:ignore>
+                    <select class="js-example-basic-single form-control">
+                        <option value="">-- Pilih Produk --</option>
+                        @foreach ($produk as $pro)
+                            <option value="{{ $pro->id }}">{{ $pro->nama_produk }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 @error('produk_id') <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span> @enderror
             </div>
 

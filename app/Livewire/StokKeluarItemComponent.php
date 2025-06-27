@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Produk;
 use App\Models\StokKeluar;
 use App\Models\StokKeluarItem;
+use Illuminate\Support\Facades\DB;
 use Livewire\WithPagination;
 
 class StokKeluarItemComponent extends Component
@@ -41,16 +42,24 @@ class StokKeluarItemComponent extends Component
     {
         $data = $this->validate();
 
+        // Hitung HPP dari stok masuk
+        $hpp = DB::table('stok_masuk_items')
+            ->where('produk_id', $data['produk_id'])
+            ->selectRaw('SUM(jumlah * harga_beli) / NULLIF(SUM(jumlah), 0) as hpp')
+            ->value('hpp');
+
+        $hpp = round($hpp ?? 0, 2); // fallback jika tidak ada data masuk
+
         if ($this->editItemId) {
             $item = StokKeluarItem::findOrFail($this->editItemId);
             $oldJumlah = $item->jumlah;
 
-            $item->update($data);
+            $item->update(array_merge($data, ['hpp' => $hpp]));
 
             // Update stok produk (kembalikan stok lama, kurangi stok baru)
             $produk = Produk::find($data['produk_id']);
-            $produk->stok += $oldJumlah;       // balikin dulu
-            $produk->stok -= $data['jumlah'];  // kurangi stok baru
+            $produk->stok += $oldJumlah;
+            $produk->stok -= $data['jumlah'];
             $produk->save();
 
             $this->editItemId = null;
@@ -60,9 +69,9 @@ class StokKeluarItemComponent extends Component
                 'produk_id' => $data['produk_id'],
                 'jumlah' => $data['jumlah'],
                 'harga_jual' => $data['harga_jual'],
+                'hpp' => $hpp,
             ]);
 
-            // Kurangi stok dari produk
             $produk = Produk::find($data['produk_id']);
             $produk->stok -= $data['jumlah'];
             $produk->save();

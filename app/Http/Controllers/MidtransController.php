@@ -204,25 +204,38 @@ class MidtransController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Deduct actual stock
             foreach ($order->orderItems as $item) {
                 $produk = $item->produk;
+
                 if ($produk->stok < $item->quantity) {
                     throw new \Exception("Stok {$produk->nama_produk} tidak mencukupi.");
                 }
+
+                // Kurangi stok produk
                 $produk->decrement('stok', $item->quantity);
+
+                // Hitung HPP berdasarkan stok masuk
+                $hpp = DB::table('stok_masuk_items')
+                    ->where('produk_id', $item->produk_id)
+                    ->selectRaw('SUM(jumlah * harga_beli) / NULLIF(SUM(jumlah), 0) as hpp')
+                    ->value('hpp');
+
+                $hpp = round($hpp ?? 0, 2);
+
+                // Simpan HPP ke order item
+                $item->update(['hpp' => $hpp]);
             }
 
-            // Release hard reservations
+            // Hapus hard reservation
             StockReservation::where('user_id', $order->user_id)
                 ->where('type', 'hard')
                 ->delete();
 
-            // Update order status
+            // Update order
             $order->update([
                 'status' => 'paid',
                 'paid_at' => now(),
-                'payment_method' => 'midtrans'
+                'payment_method' => 'midtrans',
             ]);
 
             DB::commit();

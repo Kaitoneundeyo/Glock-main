@@ -2,90 +2,132 @@
 
 @section('content')
     <div class="container mx-auto p-4">
-        <div class="bg-white shadow-md rounded-lg p-4 mb-4">
-            <h1 class="text-2xl font-bold text-gray-800">🗓️ Laporan Harian
-                ({{ \Carbon\Carbon::parse($tanggal)->format('d-m-Y') }})</h1>
+        <div class="card shadow mb-6">
+            <div class="card-body">
+                <h1 class="text-2xl font-bold mb-4">Laporan Harian</h1>
+
+                <!-- Filter Tanggal -->
+                <form method="GET" class="flex flex-col md:flex-row md:items-center md:gap-4 gap-2">
+                    <div class="flex items-center gap-2">
+                        <label for="tanggal" class="font-medium">Pilih Tanggal:</label>
+                        <input type="date" name="tanggal" id="tanggal" value="{{ $tanggal }}"
+                            class="form-input border rounded p-1">
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-2 mt-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search mr-1"></i> Tampilkan
+                        </button>
+
+                        <a href="{{ route('laporan.exportExcel', ['tanggal' => $tanggal]) }}" class="btn btn-success">
+                            <i class="fas fa-file-excel mr-1"></i> Export Excel
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        {{-- Filter Tanggal --}}
-        <form method="GET" action="{{ route('laporan.index') }}" class="mb-4">
-            <input type="date" name="tanggal" value="{{ $tanggal }}" class="border rounded px-2 py-1">
-            <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded">Tampilkan</button>
-            {{-- Tombol Export Excel --}}
-            <a href="{{ route('laporan.export.excel', ['tanggal' => $tanggal]) }}"
-                class="bg-green-600 text-white px-3 py-1 rounded">
-                Download Excel
-            </a>
-        </form>
+        <!-- Ringkasan -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-100 p-4 rounded shadow">
+                <h2 class="text-lg font-semibold">Total Penjualan</h2>
+                <p class="text-xl font-bold text-blue-700">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</p>
+            </div>
+            <div class="bg-yellow-100 p-4 rounded shadow">
+                <h2 class="text-lg font-semibold">Total HPP</h2>
+                <p class="text-xl font-bold text-yellow-700">Rp {{ number_format($totalHPP, 0, ',', '.') }}</p>
+            </div>
+            <div class="bg-green-100 p-4 rounded shadow">
+                <h2 class="text-lg font-semibold">Laba Kotor</h2>
+                <p class="text-xl font-bold text-green-700">Rp {{ number_format($labaKotor, 0, ',', '.') }}</p>
+            </div>
+        </div>
 
-        {{-- Orderan --}}
-        <div class="bg-white shadow-md rounded p-4 mb-6">
-            <h2 class="text-lg font-semibold mb-2">Orderan Masuk</h2>
-            <table class="w-full table-auto">
+        <!-- Orders -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Orderan Masuk</h2>
+            <table class="table table-bordered w-full text-sm">
                 <thead>
-                    <tr>
-                        <th>No Order</th>
-                        <th>Total</th>
-                        <th>Metode</th>
+                    <tr class="bg-gray-200">
+                        <th>Order #</th>
                         <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Harga</th>
+                        <th>Subtotal</th>
+                        <th>HPP</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($orders as $order)
-                        <tr>
-                            <td>{{ $order->order_number }}</td>
-                            <td>Rp{{ number_format($order->total_amount, 0, ',', '.') }}</td>
-                            <td>{{ $order->payment_method }}</td>
-                            <td>
-                                <ul>
-                                    @foreach ($order->orderItems as $item)
-                                        <li>{{ $item->produk->nama_produk }} x {{ $item->quantity }}</li>
-                                    @endforeach
-                                </ul>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4">Tidak ada orderan.</td>
-                        </tr>
-                    @endforelse
+                    @foreach ($orders as $order)
+                        @foreach ($order->orderItems as $item)
+                            <tr>
+                                <td>{{ $order->order_number }}</td>
+                                <td>{{ $item->produk->nama_produk ?? '-' }}</td>
+                                <td>{{ $item->quantity }}</td>
+                                <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                                <td>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                                <td>Rp {{ number_format(($item->hpp ?? 0) * $item->quantity, 0, ',', '.') }}</td>
+                            </tr>
+                        @endforeach
+                    @endforeach
                 </tbody>
             </table>
-            <p class="mt-2 font-semibold">Total Pemasukan: Rp{{ number_format($totalPemasukan, 0, ',', '.') }}</p>
+            {{ $orders->links() }}
         </div>
 
-        {{-- Stok Masuk --}}
-        <div class="bg-green-100 shadow-md rounded p-4 mb-6">
-            <h2 class="text-lg font-semibold mb-2">Stok Masuk</h2>
-            @forelse ($stokMasuk as $masuk)
-                <div class="mb-2">
-                    <strong>Invoice:</strong> {{ $masuk->no_invoice }}<br>
-                    <ul>
+        <!-- Stok Masuk -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Stok Masuk</h2>
+            <table class="table table-bordered w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th>No Invoice</th>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Harga Beli</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($stokMasuk as $masuk)
                         @foreach ($masuk->items as $item)
-                            <li>{{ $item->produk->nama_produk }}: {{ $item->jumlah }} pcs</li>
+                            <tr>
+                                <td>{{ $masuk->no_invoice }}</td>
+                                <td>{{ $item->produk->nama_produk ?? '-' }}</td>
+                                <td>{{ $item->jumlah }}</td>
+                                <td>Rp {{ number_format($item->harga_beli, 0, ',', '.') }}</td>
+                                <td>Rp {{ number_format($item->jumlah * $item->harga_beli, 0, ',', '.') }}</td>
+                            </tr>
                         @endforeach
-                    </ul>
-                </div>
-            @empty
-                <p>Tidak ada stok masuk.</p>
-            @endforelse
+                    @endforeach
+                </tbody>
+            </table>
+            {{ $stokMasuk->links() }}
         </div>
 
-        {{-- Stok Keluar --}}
-        <div class="bg-red-100 shadow-md rounded p-4 mb-6">
-            <h2 class="text-lg font-semibold mb-2">Stok Keluar</h2>
-            @forelse ($stokKeluar as $keluar)
-                <div class="mb-2">
-                    <strong>No Keluar:</strong> {{ $keluar->no_keluar }}<br>
-                    <ul>
+        <!-- Stok Keluar -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Stok Keluar (Rusak / Expired)</h2>
+            <table class="table table-bordered w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th>Referensi</th>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($stokKeluar as $keluar)
                         @foreach ($keluar->items as $item)
-                            <li>{{ $item->produk->nama_produk }}: {{ $item->jumlah }} pcs</li>
+                            <tr>
+                                <td>{{ $keluar->keterangan ?? '-' }}</td>
+                                <td>{{ $item->produk->nama_produk ?? '-' }}</td>
+                                <td>{{ $item->jumlah }}</td>
+                            </tr>
                         @endforeach
-                    </ul>
-                </div>
-            @empty
-                <p>Tidak ada stok keluar.</p>
-            @endforelse
+                    @endforeach
+                </tbody>
+            </table>
+            {{ $stokKeluar->links() }}
         </div>
     </div>
 @endsection

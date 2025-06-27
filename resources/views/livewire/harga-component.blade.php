@@ -13,12 +13,14 @@
                 <div class="mb-3 row">
                     <label for="produk_id" class="col-sm-2 col-form-label text-black">Produk</label>
                     <div class="col-sm-10">
-                        <select id="produk_id" wire:model="produk_id" class="form-control">
-                            <option value="">-- Pilih Produk --</option>
-                            @foreach ($produkList as $produk)
-                                <option value="{{ $produk->id }}">{{ $produk->nama_produk }}</option>
-                            @endforeach
-                        </select>
+                        <div wire:ignore>
+                            <select class="js-example-basic-single form-control">
+                                <option value="">-- Pilih Produk --</option>
+                                @foreach ($produk as $pro)
+                                    <option value="{{ $pro->id }}">{{ $pro->nama_produk }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         @error('produk_id') <span class="text-danger text-sm">{{ $message }}</span> @enderror
                     </div>
                 </div>

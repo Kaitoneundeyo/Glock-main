@@ -23,6 +23,7 @@ use App\Http\Controllers\TampilanController;
 use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\UtamaController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\LaporanBulananController;
 
 // ========================================
 // PUBLIC ROUTES (Tanpa middleware auth)
@@ -105,7 +106,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['isKasir'])->group(function () {
         Route::get('/lp', [LaporanController::class, 'index'])->name('laporan.index');
-        Route::get('/lp-harian/export', [LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
+        Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.exportExcel');
+        Route::get('/laporan-bulanan', [LaporanBulananController::class, 'index'])->name('laporanbulanan.index');
+        Route::get('/laporan-bulanan/export', [LaporanBulananController::class, 'exportExcel'])->name('laporanbulanan.export');
         Route::get('/ord', [SeeOrderController::class, 'index'])->name('order.index');
     });
 
