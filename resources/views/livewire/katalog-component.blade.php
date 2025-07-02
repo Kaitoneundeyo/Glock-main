@@ -109,7 +109,6 @@
         <div class="mt-4">
             {{ $produks->links() }}
         </div>
-    </div>
 
     {{-- Modal Tambah ke Keranjang --}}
     @if($showModal && $selectedProduk)

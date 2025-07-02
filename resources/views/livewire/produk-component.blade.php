@@ -8,9 +8,6 @@
                 <input type="text" wire:model="kode_produk" class="form-control" id="kode_produk">
                 @error('kode_produk') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
-            <div class="col-sm-3 text-end">
-                <button type="button" class="btn btn-outline-primary" onclick="startScanner()">Scan Barcode</button>
-            </div>
         </div>
 
         {{-- Kamera Scanner --}}
@@ -60,7 +57,8 @@
         <div class="mb-3 row">
             <label for="berat" class="col-sm-2 col-form-label text-black">Berat (gram)</label>
             <div class="col-sm-10">
-                <input type="number" wire:model="berat" class="form-control" id="berat" placeholder="Masukkan berat dalam gram">
+                <input type="number" wire:model="berat" class="form-control" id="berat"
+                    placeholder="Masukkan berat dalam gram">
                 @error('berat') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
         </div>
